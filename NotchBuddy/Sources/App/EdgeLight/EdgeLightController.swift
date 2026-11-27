@@ -193,7 +193,7 @@ final class EdgeLightController: @unchecked Sendable {
         }
         
         let settings = EdgeLightSettings.shared
-        let glowRadii = settings.glowEnabled ? (4.0, 8.0) : nil
+        let glowRadii: (CGFloat, CGFloat)? = settings.glowEnabled ? (CGFloat(4.0), CGFloat(8.0)) : nil
         
         overlay?.triggerComet(
             color: source.color,
@@ -214,7 +214,7 @@ final class EdgeLightController: @unchecked Sendable {
         
         let settings = EdgeLightSettings.shared
         let palette = settings.continuousPalette
-        let glowRadii = settings.glowEnabled ? (4.0, 8.0) : nil
+        let glowRadii: (CGFloat, CGFloat)? = settings.glowEnabled ? (CGFloat(4.0), CGFloat(8.0)) : nil
         
         overlay?.startContinuous(
             palette: palette,
