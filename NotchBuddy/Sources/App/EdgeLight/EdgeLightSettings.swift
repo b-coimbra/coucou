@@ -4,7 +4,7 @@ import Foundation
 // Persistent settings for edge light feature.
 
 final class EdgeLightSettings: ObservableObject {
-    static let shared = EdgeLightSettings()
+    nonisolated(unsafe) static let shared = EdgeLightSettings()
     
     @Published var enabled: Bool {
         didSet { UserDefaults.standard.set(enabled, forKey: "edgeLight.enabled") }

@@ -69,7 +69,7 @@ struct GrokBotMessage: Sendable {
     let timestampMs: Int
 }
 
-struct GrokBotSnapshot: Sendable {
+struct GrokBotSnapshot: @unchecked Sendable {
     let bots: [[String: Any]]
     let messages: [GrokBotMessage]
     let ok: Bool
