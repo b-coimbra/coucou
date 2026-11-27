@@ -146,6 +146,14 @@ final class SettingsSearch: ObservableObject {
               ["shortcut.screenshot", "shortcut.capture", "shortcut.screenshot.detail"]),
             e("shortcuts.global", .shortcuts, "shortcut.group.global"),
             e("shortcuts.island", .shortcuts, "shortcut.group.island"),
+            // Notch → Edge Light
+            e("edgelight.general", .edgeLight, "edge-light.title",
+              ["edge-light.enable", "edge-light.dnd", "edge-light.continuous"]),
+            e("edgelight.appearance", .edgeLight, "edge-light.appearance",
+              ["edge-light.width", "edge-light.corner", "edge-light.glow", "edge-light.notch"]),
+            e("edgelight.sources", .edgeLight, "edge-light.sources",
+              ["Grok Bot", "Claude", "Cursor", "Slack", "Mail", "edge-light.test", "edge-light.other-agents",
+               "edge-light.reset-colors"]),
             // Mail
             e("mail.autosort", .mailOverview, "hub.mail.autosort", ["hub.mail.journal", "hub.mail.sent", "hub.mail.undo"]),
             e("mail.rules", .mailRules, "hub.mail.rules", ["hub.mail.field.sender", "hub.mail.field.subject", "hub.mail.do.junk"]),

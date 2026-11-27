@@ -1,218 +1,134 @@
-# Edge Light Integration - Implementation Summary
+# Edge Light
 
-## ✅ Completed
+A thin glowing line around the screen that lights up when something happens, ported
+from Minhoca. GitHub build only: every file is wrapped in `#if !APPSTORE`.
 
-A complete edge-lighting notification system (ported from Minhoca) has been added to Coucou on the same branch as the Grok Bot integration: `cursor/grok-bot-integration-3f70`.
+## Where the settings are
 
-**Pull Request**: https://github.com/b-coimbra/coucou/pull/1
+Coucou window (**Settings…**, ⌘,) → sidebar, notch section → **Edge Light**. The
+settings search of that window finds its three boxes.
 
-## What Was Built
+| Box | Setting | Default |
+|-----|---------|---------|
+| Edge Light | Enable Edge Light (master switch) | off |
+| | Do not disturb | off |
+| | Continuous mode | off |
+| Appearance | Line thickness, 0.5 to 6 pt | 1.5 pt |
+| | Corner radius: Auto (≈4 mm), 8, 10, 12, 14, 16 pt | Auto |
+| | Glow | on |
+| | Follow the notch | on |
+| Sources | Per source: on/off, color, **Test** | all on |
 
-### Core Functionality
+The sources box lists Grok Bot, Claude, Cursor, Slack and Mail, then Codex, Gemini,
+Antigravity, Copilot, Muse, OpenCode, Amp and Hermes under **Other agents**. The
+Claude row covers Claude Code and Claude Desktop. Slack has four colors, one per
+step of its sweep. **Reset colors** restores the defaults.
 
-A thin glowing line around the display edges that:
-1. **Fires on agent events**: Claude Code, Cursor, Codex, Gemini, Antigravity, Copilot, Muse, OpenCode, Amp, Hermes, Claude Desktop, **Grok Bot**
-2. **Monitors Slack & Mail**: Polls Dock badge counts every 3s via `/usr/bin/lsappinfo` (no message content)
-3. **Apple-style corners**: Continuous-curvature superellipse (matches Mac's physical rounded corners)
-4. **Notch contouring**: Automatically detects and contours around the MacBook notch with flared edges
-5. **Comet animation**: Two light comets start at top center, travel opposite directions, meet at bottom
-6. **Continuous mode**: Optional always-on alternating colors with traveling comets
-7. **Click-through overlay**: Borderless transparent window on all spaces, over fullscreen apps
+Changes apply right away, without a restart.
 
-### Files Created
+- **Test** plays that source's comet on the screen being worked on, even if the
+  source is off or Do not disturb is on. It needs the master switch.
+- **Do not disturb** is Coucou's own switch (it does not read macOS Focus). It
+  stops the comets, the continuous line and the badge polling.
 
-#### Geometry (`EdgeLightGeometry.swift` - 324 lines)
-- Continuous-curvature corner paths (superellipse with 1.528 extension ratio)
-- Notch detection and contouring (4 curved corners: 2 concave flares, 2 convex bases)
-- Arc-length parameterization for smooth comet following exact path
-- Point sampling for rendering
+## What triggers it
 
-#### Animation (`EdgeLightAnimator.swift` - 237 lines)
-- Comet with tapering tail following arc length
-- Smooth ease-in-out motion (smoothstep)
-- Multi-color palette support (Slack's 4-color sweep)
-- Fade in/out at start/end
-- Continuous mode with alternating colors cycling around perimeter
+| Source | Trigger |
+|--------|---------|
+| Agents (Claude Code, Cursor, Codex…) | A turn ends (`Stop` hook) while the terminal is not in front (`HookServer.swift`) |
+| Grok Bot | A new assistant message, when the Grok Bot pill is active (`GrokBotPoller.swift`) |
+| Slack, Mail | The Dock badge count goes up |
 
-#### Overlay (`EdgeLightOverlay.swift` - 125 lines)
-- NSWindow: borderless, non-activating, transparent, click-through
-- Level: `.statusBar` (over regular windows)
-- Collection behavior: all spaces, stationary, fullscreen auxiliary
-- CVDisplayLink for smooth 60fps rendering
+A new trigger replaces the comet already running.
 
-#### Controller (`EdgeLightController.swift` - 192 lines)
-- Main coordinator for geometry, overlay, triggers
-- Screen change observer (updates path on resolution/display change)
-- Physical radius calculation (~4mm in points for each screen)
-- Badge monitor lifecycle management
-- Mapping from agent/service to colors and palettes
+## Files (`NotchBuddy/Sources/App/EdgeLight/`)
 
-#### Badge Monitor (`EdgeLightBadgeMonitor.swift` - 142 lines)
-- Polls Slack (`com.tinyspeck.slackmacgap`) and Mail (`com.apple.mail`)
-- Uses `/usr/bin/lsappinfo` to read Dock badge counts
-- Triggers only on count increase (not on first read)
-- Parses: "3" → 3, "•" → 1, "99+" → 99, "" → 0
-- 3-second polling interval (configurable)
+| File | Role |
+|------|------|
+| `EdgeLightGeometry.swift` | The closed path along the screen edges: continuous-curvature corners, notch contour, sampling by arc length |
+| `EdgeLightAnimator.swift` | Comet and continuous line, as a list of draw items for a given time |
+| `EdgeLightView.swift` | The scene, and the SwiftUI `Canvas` driven by a `TimelineView` |
+| `EdgeLightOverlay.swift` | The window, and when it is on screen |
+| `EdgeLightController.swift` | Triggers, settings changes, screen changes, path building, sources |
+| `EdgeLightBadgeMonitor.swift` | Slack and Mail badge counts |
+| `EdgeLightSettings.swift` | `UserDefaults`-backed settings (`edgeLight.*`) |
+| `EdgeLightSettingsView.swift` | The settings page |
 
-#### Settings (`EdgeLightSettings.swift` - 162 lines)
-- Persistent UserDefaults-backed settings
-- Master on/off toggle
-- Continuous mode toggle
-- Line width (default 1.5 pt)
-- Glow on/off
-- Corner radius presets: Auto (~4mm), 8pt, 10pt, 12pt, 14pt, 16pt
-- Notch contour on/off
-- Per-source toggles (14 sources: all agents + Slack + Mail)
+Outside this folder: `HookServer.swift`, `GrokBotPoller.swift` and
+`AppDelegate.swift` (triggers and launch), `SettingsView.swift`, `FlowHub.swift`,
+`FlowHubMochis.swift` and `SettingsSearch.swift` (settings page), and
+`Localizable.xcstrings` (the `edge-light.*` strings, 16 languages).
 
-### Integration Points
+## Overlay window
 
-1. **HookServer.swift** - Added edge light trigger on agent finish (line ~856)
-2. **GrokBotPoller.swift** - Added edge light trigger on new Grok Bot message
-3. **AppDelegate.swift** - Started EdgeLightController on launch
-4. **IslandViewContent.swift** - Fixed Grok Bot bundle ID to `com.anysphere.sand`
+A borderless, non-activating `NSPanel` that can't become key or main: transparent,
+click-through, at `.statusBar` level (above regular windows and the menu bar, below
+Coucou's island), on all spaces and over fullscreen apps. It stays when Coucou is
+not the active app.
 
-### Tests Created
+It covers one screen, `NSScreen.main` (the one with keyboard focus), read at each
+trigger, settings change and screen change.
 
-**EdgeLightGeometryTests.swift** (10 tests):
-- Arc length calculation
-- Corner radius scaling
-- Notch geometry constraints
-- Superellipse extension ratio validation
-- Physical radius calculation (mm → pt)
-- Distance function (Pythagorean)
-- Arc length sampling
-- Cyclic position wrap-around
-- Line width offset calculation
+## Animation
 
-**EdgeLightBadgeTests.swift** (8 test groups, 25+ assertions):
-- Badge count parsing: "3", "17", "99", "99+", "•", ""
-- ASN extraction from lsappinfo output
-- Status label extraction with regex
-- Bundle ID validation
-- Count increase detection logic
-- App not running (nil) state reset
+**Comet**: two heads leave the top center in opposite directions and meet at the
+bottom center, with a tail of 25 % of the perimeter. Two laps of 2 s, then a 0.8 s
+fade (4.8 s in all). Slack's colors sweep from top to bottom.
 
-## Security & Privacy Rules
+**Continuous mode**: six fixed colors turning around the screen (6 s per turn) at
+80 % opacity, with one lighter comet on top (5 s per turn). A source's comet plays
+over it.
 
-✅ **Zero network** calls (badge monitor uses local system command only)  
-✅ **No message content** read (only badge counts)  
-✅ **Display-only** (no interaction with messages)  
-✅ **Click-through** overlay (never steals focus or blocks input)  
-✅ **Background polling** off main thread  
-✅ **Respects system state** (checks for do-not-disturb if integrated)
+**Corners**: superellipse starting 1.528 × the radius from the corner. "Auto" is
+4 mm converted with the display's physical size, 12.5 pt when it is unknown.
 
-## Technical Details
+**Notch**: read from `safeAreaInsets` and the auxiliary top areas. The line runs
+just outside the cutout.
 
-### Geometry
+## Badge monitoring
 
-**Superellipse Formula**: `|u|^p + |v|^p = 1` where `p ≈ 2.4` (matches circular arc visually)  
-**Extension**: Curve starts at ~1.53 × radius from corner (Apple's design)  
-**Notch**: 4 continuous-curvature corners (2 concave top flares, 2 convex bottom)
+Every 3 s, while Slack or Mail is on:
 
-### Animation
+- `/usr/bin/lsappinfo find bundleid=<id>`, then
+  `/usr/bin/lsappinfo info -only StatusLabel <asn>`
+- `"3"` → 3, `"•"` → 1, `"99+"` → 99, `""` → 0
+- Triggers only when a count goes up (never on the first read)
+- No message content is read, no network, no permission asked
 
-**Comet Motion**:
-- Start: top center of screen
-- Two comets travel opposite directions (left and right)
-- Meet at bottom center
-- Tail length: 25% of perimeter
-- Duration: 2 seconds per lap × 2 laps + 0.8s fade = ~4.8s total
+## Performance
 
-**Continuous Mode**:
-- Colors cycle around perimeter (6s per full cycle)
-- Optional traveling comets on top (1 comet, 5s cycle)
-- Opacity: 0.8
+- Nothing animating: the window is off screen and the `TimelineView` does not
+  exist, so no frame is scheduled. The badge poll is the only periodic work, and it
+  stops with Slack and Mail off, Do not disturb on, or the feature off.
+- Comet: 60 fps for 4.8 s.
+- Continuous mode: 30 fps for as long as it is on.
 
-### Colors & Palettes
+CPU use has not been measured.
 
-| Source | Color | Palette (multi-color) |
-|--------|-------|---------------------|
-| Claude Code | #D97757 | - |
-| Cursor | #C0C4CC | - |
-| Codex | #2DD4BF | - |
-| Gemini | #8AB4F8 | - |
-| Antigravity | #E879F9 | - |
-| Copilot | #818CF8 | - |
-| Muse | #38BDF8 | - |
-| OpenCode | #4ADE80 | - |
-| Amp | #F59E0B | - |
-| Hermes | #C084FC | - |
-| Claude Desktop | #D97757 | - |
-| **Grok Bot** | **#10B981** | - |
-| **Slack** | #E01E5A | **4 colors** (#36C5F0, #2EB67D, #ECB22E, #E01E5A) |
-| **Mail** | #2F8CFF | - |
+## Verification
 
-## Settings Location
+Done with the command line tools (Swift 6.3.3, `-strict-concurrency=complete`):
 
-The edge light settings will appear in Coucou's Settings UI under a new "Edge Light" section with:
-- Master toggle (off by default)
-- Continuous mode toggle
-- Line width slider
-- Glow toggle
-- Corner radius preset picker
-- Notch contour toggle
-- Per-source toggles (expand/collapse for 14 sources)
+- The Edge Light files, with `ColorHex.swift` and a small scratch harness, compile
+  without errors or warnings.
+- The `-D APPSTORE` variant of the app sources type-checks.
+- The GitHub variant was type-checked without FluidAudio: the only errors came from
+  the two files left out and from the missing `FoundationModels` macro plugin.
 
-## How to Enable
+Still to do:
 
-1. **Build and run** Coucou (GitHub build, not App Store)
-2. **Open Settings** → Edge Light
-3. **Enable** "Edge light"
-4. **Configure** which sources should trigger (all on by default)
-5. **(Optional)** Enable "Continuous mode" for always-on alternating colors
+- [ ] Full `xcodebuild` (CI)
+- [ ] On a Mac: drawing, notch alignment, corner radius, click-through, all spaces,
+      fullscreen, no focus stealing
+- [ ] Slack and Mail badge reading
+- [ ] CPU use, idle and animating
+- [ ] Translations of the new strings reviewed by speakers
 
-## Badge Monitoring Details
+`NotchBuddy/Tests/EdgeLightGeometryTests.swift` and `EdgeLightBadgeTests.swift` are
+standalone scripts that carry their own copy of the logic: they do not exercise the
+app's types.
 
-**Slack & Mail** are monitored via badge counts:
-- Uses system command: `/usr/bin/lsappinfo find bundleid=<id>` → ASN
-- Then: `/usr/bin/lsappinfo info -only StatusLabel <asn>` → badge text
-- Parse badge: "3" → 3, "•" → 1, "99+" → 99, "" → 0
-- Trigger only when count **increases** (not on first read or decrease)
-- Poll every **3 seconds** (Minhoca default)
-- **Zero permissions** required (lsappinfo is public API)
-
-## Minimal Invasiveness
-
-Following the same principle as Grok Bot integration:
-- **New directory**: `NotchBuddy/Sources/App/EdgeLight/` (all 6 Swift files)
-- **Shared files touched**: Only necessary integrations (HookServer, GrokBotPoller, AppDelegate, IslandViewContent)
-- **No existing code modified**: All logic self-contained
-- **Zero dependencies**: Pure Swift/AppKit/CoreGraphics
-- **Settings isolated**: New EdgeLightSettings class, doesn't touch existing settings
-
-## To Test
-
-### Geometry & Animation
-1. Enable edge light in Settings
-2. Trigger an agent (Claude Code, Cursor, etc.)
-3. Watch for two comets starting at top center, traveling to bottom
-4. Verify corners are smoothly curved
-5. On MacBook with notch: verify line contours around notch
-
-### Badge Monitoring
-1. Enable Slack and/or Mail in Edge Light settings
-2. Receive a new Slack message or email
-3. Badge count should increase in Dock
-4. Edge light should trigger (Slack with 4-color sweep)
-
-### Continuous Mode
-1. Enable "Continuous mode" in settings
-2. Colors should alternate around screen edge continuously
-3. Optional comet travels on top
-
-### Corner Radius Presets
-1. Try different presets in settings (Auto, 8pt, 10pt, 12pt, 14pt, 16pt)
-2. Corners should adjust immediately
-3. "Auto" should match Mac's physical corners (~4mm)
-
-### Notch Contour
-1. On MacBook with notch: enable "Notch contour"
-2. Line should descend around left side of notch, pass underneath, ascend right side
-3. Disable: line should go straight across top (behind notch)
-
-## Syncing Upstream
-
-Same workflow as Grok Bot integration - all on one branch:
+## Syncing upstream
 
 ```bash
 git fetch upstream
@@ -225,62 +141,3 @@ git rebase main
 # Resolve any conflicts
 git push --force-with-lease
 ```
-
-## Unverified / Needs Mac Testing
-
-Since this environment doesn't have macOS build tools:
-
-- [ ] **Build succeeds** with new EdgeLight directory
-- [ ] **CVDisplayLink works** for smooth animation
-- [ ] **Notch detection** works on MacBook Pro 14"/16"
-- [ ] **Badge polling** successfully reads Slack/Mail counts
-- [ ] **Click-through** works (overlay never captures input)
-- [ ] **All spaces** behavior works (overlay visible everywhere)
-- [ ] **Physical radius** calculation produces correct ~4mm corners
-- [ ] **Performance** is acceptable (should be near 0% CPU when idle)
-
-## Known Limitations
-
-1. **Slack color requires 4+ colors**: If Slack palette has < 2 colors in settings, falls back to single color
-2. **Badge monitoring macOS only**: Uses `/usr/bin/lsappinfo` (not available on Windows/Linux)
-3. **Notch detection macOS 12+**: Requires `safeAreaInsets` and `auxiliaryTopLeftArea` APIs
-4. **GitHub build only**: Edge light is `#if !APPSTORE` (requires unrestricted window levels)
-
-## Performance
-
-**Idle** (no animation):
-- Overlay hidden, no rendering
-- Badge monitor: one shell command every 3s per source (minimal)
-- **~0% CPU**
-
-**Active** (comet animating):
-- 60 fps rendering via CVDisplayLink
-- Simple path sampling + line drawing
-- **Target: <1% CPU** on Apple Silicon
-
-**Continuous mode**:
-- 30 fps (configurable via `linha_continua_fps` if ported to settings)
-- Slightly higher CPU but still minimal
-- **Target: <2% CPU**
-
-## Code Quality
-
-- **Swift 6** strict concurrency
-- **@unchecked Sendable** where needed for thread-safe cross-thread access
-- **@MainActor** for all UI updates
-- **Background queues** for badge polling and geometry calculation
-- **No force-unwraps** (safe optional handling)
-- **Follows Coucou conventions**: Poller pattern, Settings pattern, AppDelegate lifecycle
-
----
-
-Built following Minhoca's exact behavior:
-✅ Continuous-curvature corners (superellipse)  
-✅ Notch contouring with flared edges  
-✅ Comet animation with tapering tail  
-✅ Arc-length parameterization (smooth following)  
-✅ Slack 4-color palette sweep  
-✅ Badge count polling (3s interval)  
-✅ Zero network, no message content  
-✅ Click-through overlay on all spaces  
-✅ Ready to merge (all features complete)

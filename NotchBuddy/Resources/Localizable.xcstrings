@@ -1,6 +1,426 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "edge-light.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إضاءة الحواف" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "এজ লাইট" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Randlicht" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Edge Light" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Luz de borde" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Lumière de bord" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "एज लाइट" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Cahaya Tepi" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エッジライト" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "엣지 라이트" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Luz de borda" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Подсветка краёв" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "ไฟขอบจอ" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kenar Işığı" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "边缘灯光" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "邊緣燈光" } }
+      }
+    },
+    "hub.notch.edge-light" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "ضوء رفيع حول الشاشة عندما يحدث شيء جديد." } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "নতুন কিছু ঘটলে স্ক্রিনের চারপাশে একটি সরু আলো।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Ein feines Licht um den Bildschirm, wenn es etwas Neues gibt." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "A thin light around your screen when something new happens." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Una luz fina alrededor de la pantalla cuando hay novedades." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Une fine lumière autour de l’écran quand il y a du nouveau." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "कुछ नया होने पर स्क्रीन के चारों ओर एक पतली रोशनी।" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Cahaya tipis di sekeliling layar saat ada yang baru." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "新しい出来事があると、画面のふちが細く光ります。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "새로운 일이 생기면 화면 둘레에 가는 빛이 켜집니다." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Uma luz fina ao redor da tela quando há novidade." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Тонкая подсветка вокруг экрана, когда происходит что-то новое." } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "แสงเส้นบางรอบจอเมื่อมีอะไรใหม่" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Yeni bir şey olduğunda ekranın çevresinde ince bir ışık." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "有新动态时，屏幕四周亮起一道细光。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "有新動態時，螢幕四周亮起一道細光。" } }
+      }
+    },
+    "edge-light.enable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تفعيل إضاءة الحواف" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "এজ লাইট চালু করো" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Randlicht aktivieren" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Enable Edge Light" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Activar la luz de borde" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Activer la lumière de bord" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "एज लाइट चालू करें" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Aktifkan Cahaya Tepi" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エッジライトを有効にする" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "엣지 라이트 켜기" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Ativar a luz de borda" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Включить подсветку краёв" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "เปิดไฟขอบจอ" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kenar Işığını etkinleştir" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "启用边缘灯光" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "啟用邊緣燈光" } }
+      }
+    },
+    "edge-light.enable.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "خط متوهج رفيع يدور حول حافة الشاشة. النقرات تمر من خلاله." } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "স্ক্রিনের কিনারা ধরে একটি সরু উজ্জ্বল রেখা ঘোরে। ক্লিক এর ভেতর দিয়ে চলে যায়।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Eine dünne leuchtende Linie läuft am Bildschirmrand entlang. Klicks gehen hindurch." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "A thin glowing line runs around the edge of the screen. Clicks pass through it." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Una línea fina y luminosa recorre el borde de la pantalla. Los clics la atraviesan." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Une fine ligne lumineuse parcourt le bord de l’écran. Les clics la traversent." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "एक पतली चमकती रेखा स्क्रीन के किनारे घूमती है। क्लिक इसके आर-पार जाते हैं।" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Garis tipis bercahaya mengelilingi tepi layar. Klik menembusnya." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "細い光の線が画面のふちを走ります。クリックはそのまま下に届きます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "가는 빛줄기가 화면 가장자리를 따라 흐릅니다. 클릭은 그대로 통과합니다." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Uma linha fina e brilhante percorre a borda da tela. Os cliques passam por ela." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Тонкая светящаяся линия проходит по краю экрана. Щелчки проходят сквозь неё." } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "เส้นแสงบาง ๆ วิ่งรอบขอบจอ การคลิกจะทะลุผ่านไป" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "İnce, parlayan bir çizgi ekranın kenarını dolaşır. Tıklamalar içinden geçer." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "一道细细的光线沿屏幕边缘流动，点击会直接穿过。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "一道細細的光線沿螢幕邊緣流動，點按會直接穿過。" } }
+      }
+    },
+    "edge-light.dnd" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "عدم الإزعاج" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "বিরক্ত করবে না" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Nicht stören" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Do not disturb" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No molestar" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ne pas déranger" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "परेशान न करें" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Jangan ganggu" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "おやすみモード" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "방해 금지" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Não perturbe" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не беспокоить" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "ห้ามรบกวน" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Rahatsız etme" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "勿扰模式" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "勿擾模式" } }
+      }
+    },
+    "edge-light.dnd.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "لا إضاءة حتى توقف هذا الخيار. يبقى زر التجربة يعمل." } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "এটি বন্ধ না করা পর্যন্ত কোনো আলো জ্বলবে না। পরীক্ষা বোতাম তবু কাজ করে।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kein Licht, bis du dies ausschaltest. Der Test funktioniert weiterhin." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No light until you turn this off. Test still works." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sin luz hasta que lo desactives. El botón de prueba sigue funcionando." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucune lumière tant que c’est activé. Le bouton de test fonctionne toujours." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "इसे बंद करने तक कोई रोशनी नहीं। परीक्षण फिर भी काम करता है।" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Tanpa cahaya sampai opsi ini dimatikan. Tombol uji tetap berfungsi." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "オフにするまで光りません。テストは使えます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "끌 때까지 빛이 켜지지 않습니다. 테스트는 계속 작동합니다." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Sem luz até você desativar. O botão de teste continua funcionando." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Подсветки не будет, пока режим включён. Проверка продолжает работать." } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "จะไม่มีแสงจนกว่าจะปิดตัวเลือกนี้ ปุ่มทดสอบยังใช้ได้" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Bunu kapatana kadar ışık yanmaz. Deneme düğmesi yine çalışır." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "关闭此项前不会亮灯。测试按钮仍然可用。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "關閉此項前不會亮燈。測試按鈕仍然可用。" } }
+      }
+    },
+    "edge-light.continuous" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "الوضع المستمر" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "অবিরাম মোড" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Dauermodus" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continuous mode" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Modo continuo" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Mode continu" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "लगातार मोड" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Mode terus-menerus" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "常時点灯モード" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "상시 모드" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Modo contínuo" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Постоянный режим" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "โหมดต่อเนื่อง" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Sürekli mod" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "常亮模式" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "常亮模式" } }
+      }
+    },
+    "edge-light.continuous.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "يُبقي خطًا متعدد الألوان على الشاشة طوال الوقت. يستهلك طاقة أكبر." } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "স্ক্রিনে সবসময় একটি বহুরঙা রেখা রাখে। বেশি শক্তি খরচ হয়।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Zeigt dauerhaft eine mehrfarbige Linie an. Verbraucht mehr Energie." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keeps a multicolor line on screen all the time. Uses more energy." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mantiene siempre una línea multicolor en pantalla. Consume más energía." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Garde en permanence une ligne multicolore à l’écran. Consomme plus d’énergie." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "स्क्रीन पर हर समय एक बहुरंगी रेखा रखता है। ज़्यादा ऊर्जा लगती है।" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Menampilkan garis warna-warni sepanjang waktu. Memakai lebih banyak daya." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "カラフルな線を常に表示します。電力消費が増えます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "여러 색의 선을 항상 표시합니다. 전력을 더 사용합니다." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Mantém uma linha multicolorida na tela o tempo todo. Consome mais energia." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Разноцветная линия всегда на экране. Расходует больше энергии." } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "แสดงเส้นหลากสีบนจอตลอดเวลา ใช้พลังงานมากขึ้น" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Ekranda sürekli çok renkli bir çizgi tutar. Daha fazla enerji harcar." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "屏幕上始终显示一道彩色光线，耗电更多。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "螢幕上持續顯示一道彩色光線，耗電較多。" } }
+      }
+    },
+    "edge-light.appearance" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "المظهر" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "চেহারা" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Darstellung" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Appearance" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Apariencia" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Apparence" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "रूप-रंग" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Tampilan" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "外観" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "모양" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Aparência" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Внешний вид" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "รูปลักษณ์" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Görünüm" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "外观" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "外觀" } }
+      }
+    },
+    "edge-light.width" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "سُمك الخط" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "রেখার পুরুত্ব" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Linienstärke" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Line thickness" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Grosor de la línea" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Épaisseur du trait" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "रेखा की मोटाई" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Ketebalan garis" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "線の太さ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "선 두께" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Espessura da linha" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Толщина линии" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "ความหนาของเส้น" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Çizgi kalınlığı" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "线条粗细" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "線條粗細" } }
+      }
+    },
+    "edge-light.corner" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "نصف قطر الزوايا" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "কোণের ব্যাসার্ধ" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Eckenradius" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Corner radius" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Radio de las esquinas" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rayon des coins" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "कोने की त्रिज्या" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Radius sudut" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "角の半径" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "모서리 반경" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Raio dos cantos" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Радиус углов" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "รัศมีมุม" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Köşe yarıçapı" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "圆角半径" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "圓角半徑" } }
+      }
+    },
+    "edge-light.corner.auto" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تلقائي (≈4 مم)" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "স্বয়ংক্রিয় (≈4 মিমি)" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Automatisch (≈4 mm)" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Auto (≈4 mm)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Automático (≈4 mm)" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Auto (≈4 mm)" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "स्वतः (≈4 मिमी)" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Otomatis (≈4 mm)" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "自動（約4 mm）" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "자동 (약 4mm)" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Automático (≈4 mm)" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Авто (≈4 мм)" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "อัตโนมัติ (≈4 มม.)" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Otomatik (≈4 mm)" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自动（≈4 毫米）" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "自動（≈4 公釐）" } }
+      }
+    },
+    "edge-light.corner.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "طابق الزوايا المستديرة لشاشتك." } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "তোমার স্ক্রিনের গোল কোণের সাথে মিলিয়ে নাও।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Passe ihn an die runden Ecken deines Bildschirms an." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Match the rounded corners of your screen." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ajústalo a las esquinas redondeadas de tu pantalla." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ajuste-le aux coins arrondis de ton écran." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "अपनी स्क्रीन के गोल कोनों से मिलाएँ।" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Sesuaikan dengan sudut membulat layarmu." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "画面の角の丸みに合わせます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "화면의 둥근 모서리에 맞추세요." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Ajuste aos cantos arredondados da sua tela." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Подберите под скруглённые углы вашего экрана." } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "ปรับให้ตรงกับมุมโค้งของจอ" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Ekranınızın yuvarlak köşelerine uydurun." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "与屏幕的圆角保持一致。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "配合螢幕的圓角。" } }
+      }
+    },
+    "edge-light.glow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "توهّج" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "আভা" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Leuchten" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Glow" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Resplandor" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Halo" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "चमक" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Pendar" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "光彩" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "광채" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Brilho" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Свечение" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "แสงเรือง" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Parıltı" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "光晕" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "光暈" } }
+      }
+    },
+    "edge-light.notch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "الالتفاف حول النوتش" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "নচ ঘিরে চলো" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Der Notch folgen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Follow the notch" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Rodear el notch" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Contourner l’encoche" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "नॉच के किनारे चलें" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Ikuti notch" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ノッチに沿わせる" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "노치를 따라가기" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Contornar o notch" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Огибать вырез" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "ลากตามรอยบาก" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Çentiği takip et" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "沿刘海轮廓" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "沿瀏海輪廓" } }
+      }
+    },
+    "edge-light.sources" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "المصادر" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "উৎস" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Quellen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Fuentes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Sources" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "स्रोत" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Sumber" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ソース" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "소스" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Fontes" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Источники" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "แหล่งที่มา" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Kaynaklar" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "来源" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "來源" } }
+      }
+    },
+    "edge-light.sources.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تضيء الوكلاء عند انتهائها إذا لم تكن طرفيتها في المقدمة. يضيء Slack وMail عند ارتفاع العدّاد في Dock." } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "টার্মিনাল সামনে না থাকলে এজেন্ট কাজ শেষ করলে আলো জ্বলে। Dock-এর ব্যাজ সংখ্যা বাড়লে Slack ও Mail-এর আলো জ্বলে।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Agenten leuchten, wenn sie fertig sind und ihr Terminal nicht im Vordergrund ist. Slack und Mail leuchten, wenn ihr Zähler im Dock steigt." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Agents light up when they finish while their terminal isn’t in front. Slack and Mail light up when their Dock badge count rises." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Los agentes se iluminan al terminar si su terminal no está en primer plano. Slack y Mail, cuando sube su contador en el Dock." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Les agents s’allument quand ils terminent sans que leur terminal soit au premier plan. Slack et Mail, quand leur pastille du Dock augmente." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "टर्मिनल सामने न होने पर एजेंट काम पूरा करते ही रोशनी होती है। Dock बैज की गिनती बढ़ने पर Slack और Mail की।" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Agen menyala saat selesai ketika terminalnya tidak di depan. Slack dan Mail menyala saat angka lencana Dock bertambah." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エージェントは、ターミナルが前面にないときに作業が終わると光ります。Slack と Mail は Dock のバッジの数が増えると光ります。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "에이전트는 터미널이 앞에 없을 때 작업을 마치면 빛납니다. Slack과 Mail은 Dock 배지 숫자가 늘면 빛납니다." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Os agentes acendem ao terminar quando o terminal não está em primeiro plano. Slack e Mail, quando o contador no Dock aumenta." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Агенты подсвечиваются, когда заканчивают работу, а их терминал не на переднем плане. Slack и Mail — когда растёт счётчик в Dock." } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "เอเจนต์จะสว่างเมื่อทำงานเสร็จขณะที่เทอร์มินัลไม่อยู่ด้านหน้า ส่วน Slack และ Mail จะสว่างเมื่อตัวเลขบน Dock เพิ่มขึ้น" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Ajanlar, terminalleri önde değilken işi bitirince yanar. Slack ve Mail, Dock rozet sayısı artınca yanar." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当终端不在最前面时，代理完成任务会亮灯。Slack 和 Mail 在程序坞角标数字增加时亮灯。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "當終端機不在最前面時，代理完成工作會亮燈。Slack 與 Mail 在 Dock 標記數字增加時亮燈。" } }
+      }
+    },
+    "edge-light.test" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "تجربة" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "পরীক্ষা" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Testen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Test" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Probar" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Tester" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "परीक्षण" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Uji" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "テスト" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "테스트" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Testar" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Проверить" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "ทดสอบ" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Dene" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "测试" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "測試" } }
+      }
+    },
+    "edge-light.other-agents" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "وكلاء آخرون" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "অন্য এজেন্ট" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Weitere Agenten" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Other agents" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Otros agentes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Autres agents" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "अन्य एजेंट" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Agen lainnya" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "その他のエージェント" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "기타 에이전트" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Outros agentes" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Другие агенты" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "เอเจนต์อื่น ๆ" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Diğer ajanlar" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "其他代理" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "其他代理" } }
+      }
+    },
+    "edge-light.reset-colors" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إعادة تعيين الألوان" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "রং রিসেট করো" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Farben zurücksetzen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reset colors" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Restablecer colores" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réinitialiser les couleurs" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "रंग रीसेट करें" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Atur ulang warna" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "色を元に戻す" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "색상 초기화" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Redefinir cores" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сбросить цвета" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "รีเซ็ตสี" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Renkleri sıfırla" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "还原颜色" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "還原顏色" } }
+      }
+    },
     "coucoudoro.hint" : {
       "localizations" : {
         "ar" : {

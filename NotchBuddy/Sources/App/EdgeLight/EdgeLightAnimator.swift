@@ -1,3 +1,4 @@
+#if !APPSTORE
 import Foundation
 import CoreGraphics
 
@@ -56,18 +57,19 @@ struct EdgeLightComet {
     func frame(at time: TimeInterval) -> (phase: CGFloat, alpha: CGFloat)? {
         guard isActive(at: time) else { return nil }
         
-        let elapsed = CGFloat(time - startTime)
-        
-        // Phase within current lap
-        let phase = (elapsed / lapDuration).truncatingRemainder(dividingBy: 1.0)
-        
+        // A frame can be dated slightly before the trigger
+        let elapsed = max(0, CGFloat(time - startTime))
+        let lapEnd = CGFloat(laps) * lapDuration
+
+        // Phase within current lap; the comets stay at the bottom while fading out
+        let phase = elapsed >= lapEnd ? 1.0 : (elapsed / lapDuration).truncatingRemainder(dividingBy: 1.0)
+
         // Fade in/out
         let fadeIn: CGFloat = 0.15
         var alpha: CGFloat = 1.0
         if elapsed < fadeIn {
             alpha = elapsed / fadeIn
         }
-        let lapEnd = CGFloat(laps) * lapDuration
         if elapsed > lapEnd {
             alpha = max(0, 1.0 - (elapsed - lapEnd) / fadeDuration)
         }
@@ -81,7 +83,7 @@ struct EdgeLightComet {
         
         let smoothPhase = smoothstep(phase)
         let perimeter = path.perimeter
-        let startS = path.perimeter / 2.0  // Start at top center
+        let startS = path.topCenterS  // Start at top center
         
         // Two comets moving in opposite directions
         let distance = smoothPhase * perimeter / 2.0
@@ -165,8 +167,10 @@ struct EdgeLightComet {
         
         // Interpolate through palette based on position
         let perimeter = path.perimeter
-        let u = abs(((s - perimeter / 2.0).truncatingRemainder(dividingBy: perimeter)) - perimeter / 2.0) / (perimeter / 2.0)
-        
+        var fromTop = (s - path.topCenterS).truncatingRemainder(dividingBy: perimeter)
+        if fromTop < 0 { fromTop += perimeter }
+        let u = abs(fromTop - perimeter / 2.0) / (perimeter / 2.0)  // 1 at the top, 0 at the bottom
+
         return paletteColor(palette, at: u * CGFloat(palette.count))
     }
 }
@@ -276,3 +280,4 @@ enum EdgeLightDrawItem {
     case line(points: [CGPoint], color: (CGFloat, CGFloat, CGFloat), alpha: CGFloat, width: CGFloat, isGlow: Bool = false)
     case circle(center: CGPoint, radius: CGFloat, color: (CGFloat, CGFloat, CGFloat), alpha: CGFloat)
 }
+#endif

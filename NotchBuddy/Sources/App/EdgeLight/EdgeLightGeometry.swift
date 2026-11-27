@@ -1,3 +1,4 @@
+#if !APPSTORE
 import Foundation
 import CoreGraphics
 
@@ -18,6 +19,8 @@ struct EdgeLightPath {
     let points: [CGPoint]
     let arcLengths: [CGFloat]  // cumulative arc lengths for each point
     let perimeter: CGFloat
+    /// Arc length of the middle of the top edge (under the notch when there is one)
+    let topCenterS: CGFloat
     let rect: CGRect
     let notch: EdgeLightNotch?
     
@@ -135,6 +138,18 @@ struct EdgeLightPath {
         }
         self.arcLengths = lengths
         self.perimeter = lengths.last ?? 1.0
+
+        // The path starts on the top edge going right, so the first segment crossing
+        // the middle of the screen is the top one
+        var top: CGFloat = 0
+        for i in cleaned.indices.dropFirst() {
+            let a = cleaned[i - 1], b = cleaned[i]
+            if a.x <= rect.midX && b.x >= rect.midX && b.x > a.x {
+                top = lengths[i - 1] + (lengths[i] - lengths[i - 1]) * (rect.midX - a.x) / (b.x - a.x)
+                break
+            }
+        }
+        self.topCenterS = top
     }
     
     /// Generate superellipse corner points (continuous curvature)
@@ -186,15 +201,22 @@ struct EdgeLightPath {
         return points
     }
     
-    /// Get point at arc length s along the path
+    /// Get point at arc length s along the path (wraps around, negative s included)
     func point(at s: CGFloat) -> CGPoint {
         // A segment needs two points; a degenerate path (NaN rect or line width) has one
         guard points.count > 1, perimeter > 0 else { return points.first ?? .zero }
-        let s = s.truncatingRemainder(dividingBy: perimeter)
+        var s = s.truncatingRemainder(dividingBy: perimeter)
+        if s < 0 { s += perimeter }
 
-        let idx = arcLengths.firstIndex { $0 > s } ?? 1
-        let i = max(0, min(idx - 1, points.count - 2))
-        
+        // Binary search for the last point at or before s: called thousands of times a frame
+        var low = 0
+        var high = arcLengths.count - 1
+        while high - low > 1 {
+            let mid = (low + high) / 2
+            if arcLengths[mid] <= s { low = mid } else { high = mid }
+        }
+        let i = max(0, min(low, points.count - 2))
+
         let a = points[i]
         let b = points[i + 1]
         let segLen = arcLengths[i + 1] - arcLengths[i]
@@ -321,3 +343,4 @@ struct EdgeLightNotch {
 private func distance(_ a: CGPoint, _ b: CGPoint) -> CGFloat {
     hypot(a.x - b.x, a.y - b.y)
 }
+#endif

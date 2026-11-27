@@ -200,6 +200,9 @@ struct SettingsView: View {
                         SettingsSidebarRow(title: "Voice",        icon: "mic.fill",                          color: "#F97316").tag("voice")
                         #endif
                         SettingsSidebarRow(title: "Shortcuts",    icon: "keyboard.fill",                     color: "#6366F1").tag("shortcuts")
+                        #if !APPSTORE
+                        SettingsSidebarRow(title: "edge-light.title", icon: "light.max",                     color: "#10B981").tag("edgelight")
+                        #endif
                     }
                     .listStyle(.sidebar)
                     .scrollContentBackground(.hidden)
@@ -277,6 +280,9 @@ struct SettingsView: View {
         case "integrations": return String(localized: "Integrations")
         case "voice":        return String(localized: "Voice")
         case "shortcuts":    return String(localized: "Shortcuts")
+        #if !APPSTORE
+        case "edgelight":    return String(localized: "edge-light.title")
+        #endif
         default:             return String(localized: "General")
         }
     }
@@ -291,6 +297,9 @@ struct SettingsView: View {
         case "voice":        voiceSection
         #endif
         case "shortcuts":    ShortcutsSettingsView()
+        #if !APPSTORE
+        case "edgelight":    EdgeLightSettingsView()
+        #endif
         default:             generalSection
         }
     }

@@ -1,236 +1,184 @@
-import Foundation
+#if !APPSTORE
 import AppKit
+import Combine
 
 // MARK: - Edge Light Controller
 // Main coordinator: geometry, overlay, triggers, settings integration.
 
-final class EdgeLightController: @unchecked Sendable {
+@MainActor
+final class EdgeLightController {
     static let shared = EdgeLightController()
-    
+
+    /// Created on first use: nothing exists while the feature is off
     private var overlay: EdgeLightOverlay?
-    private var currentPath: EdgeLightPath?
     private var badgeMonitor: EdgeLightBadgeMonitor?
     private var screenObserver: NSObjectProtocol?
-    
+    private var settingsSubscription: AnyCancellable?
+    private var settings: EdgeLightSettings { .shared }
+
     private init() {}
-    
-    @MainActor
+
+    /// Called once at launch. Settings changes apply right away from then on.
     func start() {
-        guard EdgeLightSettings.shared.enabled else { return }
-        
-        setupOverlay()
-        setupBadgeMonitoring()
-        setupScreenChangeObserver()
-        
-        if EdgeLightSettings.shared.continuousMode {
-            startContinuous()
-        }
-    }
-    
-    @MainActor
-    func stop() {
-        overlay?.hide()
-        badgeMonitor?.stop()
-        
-        if let observer = screenObserver {
-            NotificationCenter.default.removeObserver(observer)
-            screenObserver = nil
-        }
-    }
-    
-    // MARK: - Setup
-    
-    @MainActor
-    private func setupOverlay() {
-        guard let screen = NSScreen.main else { return }
-        
-        currentPath = buildPath(for: screen)
-        overlay = EdgeLightOverlay(screen: screen)
-    }
-    
-    @MainActor
-    private func setupBadgeMonitoring() {
-        guard EdgeLightSettings.shared.slackEnabled || EdgeLightSettings.shared.mailEnabled else {
-            return
-        }
-        
-        badgeMonitor = EdgeLightBadgeMonitor { [weak self] source, _ in
-            guard let self else { return }
-            Task { @MainActor in
-                self.handleBadgeIncrease(source: source)
-            }
-        }
-        badgeMonitor?.start()
-    }
-    
-    @MainActor
-    private func setupScreenChangeObserver() {
+        guard settingsSubscription == nil else { return }
+
+        // objectWillChange comes before the new value is stored: applied on the next turn
+        settingsSubscription = settings.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.apply() }
+
         screenObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didChangeScreenParametersNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.handleScreenChange()
+            MainActor.assumeIsolated { self?.apply() }
+        }
+
+        apply()
+    }
+
+    /// Brings the overlay and the badge monitor in line with the settings.
+    private func apply() {
+        let lit = settings.enabled && !settings.doNotDisturb
+
+        if lit && (settings.slackEnabled || settings.mailEnabled) {
+            startBadgeMonitoring()
+        } else {
+            badgeMonitor?.stop()
+            badgeMonitor = nil
+        }
+
+        guard lit else {
+            overlay?.clear()
+            return
+        }
+
+        if settings.continuousMode, let screen = NSScreen.main {
+            let (overlay, path) = prepareOverlay(on: screen)
+            overlay.startContinuous(palette: settings.continuousPalette, path: path)
+        } else {
+            overlay?.stopContinuous()
         }
     }
-    
-    @MainActor
-    private func handleScreenChange() {
-        guard let screen = NSScreen.main else { return }
-        currentPath = buildPath(for: screen)
-        overlay?.updateFrame(to: screen)
+
+    private func startBadgeMonitoring() {
+        guard badgeMonitor == nil else { return }
+
+        badgeMonitor = EdgeLightBadgeMonitor { [weak self] source, _ in
+            Task { @MainActor in
+                self?.handleBadgeIncrease(source: source)
+            }
+        }
+        badgeMonitor?.start()
     }
-    
+
+    /// The overlay placed on `screen`, with the path that goes with it
+    private func prepareOverlay(on screen: NSScreen) -> (EdgeLightOverlay, EdgeLightPath) {
+        let overlay = self.overlay ?? EdgeLightOverlay()
+        self.overlay = overlay
+        overlay.place(on: screen,
+                      lineWidth: settings.lineWidth,
+                      glowRadii: settings.glowEnabled ? (4.0, 8.0) : nil)
+        return (overlay, buildPath(for: screen))
+    }
+
     // MARK: - Path Building
-    
-    @MainActor
+
+    /// In the overlay's coordinates: origin at the top left of the screen, y going down
     private func buildPath(for screen: NSScreen) -> EdgeLightPath {
-        let frame = screen.frame
-        let settings = EdgeLightSettings.shared
-        
-        // Corner radii
-        let autoRadius = physicalRadiusPt(screen: screen, mm: 4.0) ?? 12.5
-        let topRadius: CGFloat
-        let bottomRadius: CGFloat
-        
+        // Corner radius
+        let radius: CGFloat
         switch settings.cornerRadiusPreset {
-        case .auto:
-            topRadius = autoRadius
-            bottomRadius = autoRadius
-        case .pt8:
-            topRadius = 8.0
-            bottomRadius = 8.0
-        case .pt10:
-            topRadius = 10.0
-            bottomRadius = 10.0
-        case .pt12:
-            topRadius = 12.0
-            bottomRadius = 12.0
-        case .pt14:
-            topRadius = 14.0
-            bottomRadius = 14.0
-        case .pt16:
-            topRadius = 16.0
-            bottomRadius = 16.0
+        case .auto: radius = physicalRadiusPt(screen: screen, mm: 4.0) ?? 12.5
+        case .pt8: radius = 8.0
+        case .pt10: radius = 10.0
+        case .pt12: radius = 12.0
+        case .pt14: radius = 14.0
+        case .pt16: radius = 16.0
         }
-        
-        let radii = (topRadius, topRadius, bottomRadius, bottomRadius)
-        
+
+        let inset: CGFloat = 1.0
+
         // Notch detection
-        var notch: EdgeLightNotch? = nil
-        if settings.notchContourEnabled, let detected = detectNotch(screen: screen, frame: frame) {
-            notch = detected
-        }
-        
+        let notch = settings.notchContourEnabled
+            ? detectNotch(screen: screen, clearance: settings.lineWidth / 2.0 + inset)
+            : nil
+
         return EdgeLightPath(
-            rect: frame,
-            radii: radii,
+            rect: CGRect(origin: .zero, size: screen.frame.size),
+            radii: (radius, radius, radius, radius),
             lineWidth: settings.lineWidth,
-            inset: 1.0,
+            inset: inset,
             notch: notch
         )
     }
-    
-    @MainActor
-    private func detectNotch(screen: NSScreen, frame: CGRect) -> EdgeLightNotch? {
-        // Check for safe area insets (macOS 12+ with notch)
-        guard screen.responds(to: Selector(("safeAreaInsets"))),
-              screen.responds(to: Selector(("auxiliaryTopLeftArea"))),
-              screen.responds(to: Selector(("auxiliaryTopRightArea"))) else {
-            return nil
-        }
-        
-        // Use Objective-C runtime to get safeAreaInsets
-        let insets = screen.value(forKey: "safeAreaInsets") as? NSEdgeInsets
-        guard let insets = insets, insets.top > 0 else { return nil }
-        
-        let leftArea = screen.value(forKey: "auxiliaryTopLeftArea") as? NSRect
-        let rightArea = screen.value(forKey: "auxiliaryTopRightArea") as? NSRect
-        
-        guard let leftArea = leftArea, let rightArea = rightArea,
+
+    /// `clearance` keeps the whole line outside the cutout, where it can be seen
+    private func detectNotch(screen: NSScreen, clearance: CGFloat) -> EdgeLightNotch? {
+        let height = screen.safeAreaInsets.top
+        guard height > 0,
+              let leftArea = screen.auxiliaryTopLeftArea,
+              let rightArea = screen.auxiliaryTopRightArea,
               leftArea.width > 0, rightArea.width > 0 else {
             return nil
         }
-        
-        let screenFrame = screen.frame
-        let leftX = leftArea.maxX - frame.minX
-        let rightX = rightArea.minX - frame.minX
-        let bottomY = frame.minY + insets.top
-        
-        guard rightX - leftX > 20, leftX > 0, rightX < frame.width else {
-            return nil
-        }
-        
+
+        // The two areas flank the notch: its width is what they leave
+        let leftX = leftArea.width
+        let rightX = screen.frame.width - rightArea.width
+
+        guard rightX - leftX > 20 else { return nil }
+
         return EdgeLightNotch(
-            leftX: leftX,
-            rightX: rightX,
-            bottomY: bottomY,
+            leftX: leftX - clearance,
+            rightX: rightX + clearance,
+            bottomY: height + clearance,
             baseRadius: 8.0,
             topRadius: 4.0
         )
     }
-    
-    @MainActor
+
     private func physicalRadiusPt(screen: NSScreen, mm: CGFloat) -> CGFloat? {
         guard let deviceDesc = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID else {
             return nil
         }
-        
+
         let size = CGDisplayScreenSize(deviceDesc)
         guard size.width > 100 else { return nil }  // No reliable size info
-        
+
         return max(6.0, min(24.0, mm * screen.frame.width / size.width))
     }
-    
+
     // MARK: - Triggers
-    
-    @MainActor
+
+    /// Something happened: lights up if the settings allow it.
     func trigger(source: EdgeLightSource) {
-        guard EdgeLightSettings.shared.enabled,
-              EdgeLightSettings.shared.isEnabled(source: source),
-              let path = currentPath else {
-            return
+        guard !settings.doNotDisturb, settings.isEnabled(source: source) else { return }
+        play(source)
+    }
+
+    /// The Test button: shown even with the source off or Do not disturb on.
+    func preview(source: EdgeLightSource) {
+        play(source)
+    }
+
+    private func play(_ source: EdgeLightSource) {
+        // The screen being worked on, read each time
+        guard settings.enabled, let screen = NSScreen.main else { return }
+
+        let (overlay, path) = prepareOverlay(on: screen)
+        // The continuous line follows to the comet's screen
+        if settings.continuousMode && !settings.doNotDisturb {
+            overlay.startContinuous(palette: settings.continuousPalette, path: path)
         }
-        
-        let settings = EdgeLightSettings.shared
-        let glowRadii: (CGFloat, CGFloat)? = settings.glowEnabled ? (CGFloat(4.0), CGFloat(8.0)) : nil
-        
-        overlay?.triggerComet(
-            color: source.color,
-            palette: source.palette,
-            path: path,
-            lineWidth: settings.lineWidth,
-            glowRadii: glowRadii
+        overlay.playComet(
+            color: settings.colorHex(for: source),
+            palette: settings.palette(for: source),
+            path: path
         )
     }
-    
-    @MainActor
-    func startContinuous() {
-        guard EdgeLightSettings.shared.enabled,
-              EdgeLightSettings.shared.continuousMode,
-              let path = currentPath else {
-            return
-        }
-        
-        let settings = EdgeLightSettings.shared
-        let palette = settings.continuousPalette
-        let glowRadii: (CGFloat, CGFloat)? = settings.glowEnabled ? (CGFloat(4.0), CGFloat(8.0)) : nil
-        
-        overlay?.startContinuous(
-            palette: palette,
-            path: path,
-            lineWidth: settings.lineWidth,
-            opacity: 0.8,
-            glowRadii: glowRadii
-        )
-    }
-    
-    @MainActor
-    func stopContinuous() {
-        overlay?.stopContinuous()
-    }
-    
-    @MainActor
+
     private func handleBadgeIncrease(source: EdgeLightBadgeSource) {
         switch source {
         case .slack:
@@ -243,7 +191,7 @@ final class EdgeLightController: @unchecked Sendable {
 
 // MARK: - Edge Light Source
 
-enum EdgeLightSource {
+enum EdgeLightSource: String, CaseIterable {
     case claudeCode
     case cursor
     case codex
@@ -258,8 +206,28 @@ enum EdgeLightSource {
     case grokBot
     case slack
     case mail
-    
-    var color: String {
+
+    /// A product name, never translated
+    var name: String {
+        switch self {
+        case .claudeCode: return "Claude Code"
+        case .cursor: return "Cursor"
+        case .codex: return "Codex"
+        case .gemini: return "Gemini"
+        case .antigravity: return "Antigravity"
+        case .copilot: return "Copilot"
+        case .muse: return "Muse"
+        case .opencode: return "OpenCode"
+        case .amp: return "Amp"
+        case .hermes: return "Hermes"
+        case .claudeDesktop: return "Claude Desktop"
+        case .grokBot: return "Grok Bot"
+        case .slack: return "Slack"
+        case .mail: return "Mail"
+        }
+    }
+
+    var defaultColor: String {
         switch self {
         case .claudeCode, .claudeDesktop: return "#D97757"
         case .cursor: return "#C0C4CC"
@@ -276,8 +244,9 @@ enum EdgeLightSource {
         case .mail: return "#2F8CFF"
         }
     }
-    
-    var palette: [String]? {
+
+    /// The colors a source sweeps through, instead of a single one
+    var defaultPalette: [String]? {
         switch self {
         case .slack:
             return ["#36C5F0", "#2EB67D", "#ECB22E", "#E01E5A"]
@@ -285,7 +254,7 @@ enum EdgeLightSource {
             return nil
         }
     }
-    
+
     var pillId: String? {
         switch self {
         case .claudeCode: return "integration_claude"
@@ -304,3 +273,4 @@ enum EdgeLightSource {
         }
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if !APPSTORE
 import Foundation
 
 // MARK: - Badge Monitor
@@ -18,10 +19,11 @@ enum EdgeLightBadgeSource {
 
 final class EdgeLightBadgeMonitor: @unchecked Sendable {
     private var timer: DispatchSourceTimer?
-    private let callback: (EdgeLightBadgeSource, Int) -> Void
+    private let callback: @Sendable (EdgeLightBadgeSource, Int) -> Void
     private var lastCounts: [EdgeLightBadgeSource: Int] = [:]
-    
-    init(onIncrease: @escaping (EdgeLightBadgeSource, Int) -> Void) {
+
+    /// `onIncrease` is called on a background queue.
+    init(onIncrease: @escaping @Sendable (EdgeLightBadgeSource, Int) -> Void) {
         self.callback = onIncrease
     }
     
@@ -143,3 +145,4 @@ final class EdgeLightBadgeMonitor: @unchecked Sendable {
         return 1
     }
 }
+#endif
