@@ -42,6 +42,8 @@ enum IslandPlacement: String, CaseIterable, Sendable {
     static let arcRadius: CGFloat = 150
     /// The room Mochi and his circle take in the corner of the open island (the card has the rest).
     static let cornerColumn: CGFloat = 230
+    /// The circle's page arrows, this far from the island's top or bottom edge.
+    static let pagerInset: CGFloat = 24
     /// The home view open in a corner (the Mail card reading a message: `homeReadingSize`).
     static let homeSize = CGSize(width: 640, height: 260)
     static let homeReadingSize = CGSize(width: 640, height: 320)
@@ -79,6 +81,21 @@ enum IslandPlacement: String, CaseIterable, Sendable {
     func bubblesRect(count: Int, tile: CGFloat = IslandPlacement.tile) -> CGRect {
         let w = CGFloat(count) * (Self.bubble + Self.bubbleGap)
         return CGRect(x: isRight ? -w : 0, y: 0, width: tile + w, height: tile)
+    }
+
+    /// Whether `point` (tile coordinates, y down) is on the small tile at `index`.
+    func bubbleContains(_ point: CGPoint, index: Int) -> Bool {
+        guard isCorner, index >= 0 else { return false }
+        let c = bubbleCenters(count: index + 1)[index]
+        return abs(point.x - c.x) <= Self.bubble / 2 && abs(point.y - c.y) <= Self.bubble / 2
+    }
+
+    /// Open in a corner with more pills than the circle holds: where its page arrows go (y
+    /// down), past the end of the circle, along the island's edge away from the corner.
+    func arcPagerCenter(in size: CGSize) -> CGPoint {
+        let c = cornerArcCenter(in: size)
+        return CGPoint(x: c.x + (isRight ? -Self.arcRadius : Self.arcRadius),
+                       y: isBottom ? Self.pagerInset : size.height - Self.pagerInset)
     }
 
     /// The other pills' Mochis around him (y down): `count` points on the quarter circle that

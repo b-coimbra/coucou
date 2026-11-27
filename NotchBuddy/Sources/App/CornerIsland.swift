@@ -20,6 +20,10 @@ struct CornerArcView: View {
     @State private var ringOff: Set<String> = []
     /// Tapped, its circle drawing itself out before the flight.
     @State private var pendingTap: String? = nil
+    /// The page of pills on the circle (`shownPage` keeps it within the pages there are).
+    @State private var page = 0
+    /// The one a swap just brought to the corner: the circle stays on its page.
+    @State private var swappedTo: String? = nil
 
     private struct Swap: Equatable {
         let incoming: AgentTask
@@ -29,7 +33,7 @@ struct CornerArcView: View {
         static func == (a: Swap, b: Swap) -> Bool { a.incoming.id == b.incoming.id && a.slot == b.slot }
     }
 
-    /// Room for five around Mochi; the others are a tap on the circle away once one leaves it.
+    /// Room for five around Mochi; the others are on further pages (the arrows past the circle).
     static let maxShown = 5
     /// Mochi's size in the corner, and on the circle (the swap grows one and shrinks the other).
     static let bigBody: CGFloat = 58
@@ -38,12 +42,34 @@ struct CornerArcView: View {
     /// The tapped one's circle draws itself out first, this long, then the two fly.
     static let ringOutDuration: Double = 0.24
 
-    private var arcTasks: [AgentTask] {
+    /// Every other pill, in the circle's order.
+    private var circleTasks: [AgentTask] {
         let focus = state.focusTask?.id
         let others = state.tasks.filter { $0.id != focus }
         let known = order.compactMap { id in others.first { $0.id == id } }
         let rest = others.filter { t in !order.contains(t.id) }
-        return Array((known + rest).prefix(Self.maxShown))
+        return known + rest
+    }
+
+    private var shownPage: Int {
+        max(0, min(page, (circleTasks.count - 1) / Self.maxShown))
+    }
+
+    /// Those on the circle now.
+    private var arcTasks: [AgentTask] {
+        Array(circleTasks.dropFirst(shownPage * Self.maxShown).prefix(Self.maxShown))
+    }
+
+    /// Pages the circle to where the focused pill was, among the pills around it.
+    private func reveal(_ id: String?) {
+        let position = order.firstIndex { $0 == id } ?? state.tasks.firstIndex { $0.id == id } ?? 0
+        page = position / Self.maxShown
+    }
+
+    private func turn(to newPage: Int) {
+        guard swap == nil, pendingTap == nil else { return }
+        page = newPage
+        SoundEngine.shared.play("blip")
     }
 
     var body: some View {
@@ -73,6 +99,11 @@ struct CornerArcView: View {
                 .position(i < points.count ? points[i] : home)
             }
 
+            if circleTasks.count > Self.maxShown {
+                PillPager(tasks: circleTasks, page: shownPage, perPage: Self.maxShown) { turn(to: $0) }
+                    .position(placement.arcPagerCenter(in: size))
+            }
+
             // The swap: each one on its own curve, crossing the other halfway.
             if let s = swap, s.slot < points.count {
                 let slot = points[s.slot]
@@ -96,8 +127,16 @@ struct CornerArcView: View {
         }
         .frame(width: islandW, height: islandH, alignment: .topLeading)
         .animation(.spring(response: 0.42, dampingFraction: 0.8), value: tasks.map(\.id))
-        .onAppear { swapPending(after: 0.42) }
+        .onAppear {
+            reveal(state.focusId)
+            swapPending(after: 0.42)
+        }
         .onChange(of: state.cornerPendingSwap) { _, _ in swapPending(after: 0.1) }
+        // A keyboard shortcut or an alert changed the focus: the circle follows it.
+        .onChange(of: state.focusId) { _, new in
+            if new != swappedTo { reveal(new) }
+            swappedTo = nil
+        }
         .onDisappear {
             pendingTap = nil
             if swap != nil { finish() }
@@ -108,6 +147,7 @@ struct CornerArcView: View {
     private func swapPending(after delay: Double) {
         guard let id = state.cornerPendingSwap else { return }
         state.cornerPendingSwap = nil
+        if let i = circleTasks.firstIndex(where: { $0.id == id }) { page = i / Self.maxShown }
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
             let tasks = arcTasks
             guard let i = tasks.firstIndex(where: { $0.id == id }) else { return }
@@ -117,8 +157,8 @@ struct CornerArcView: View {
 
     private func start(_ task: AgentTask, at index: Int, current: [AgentTask]) {
         guard swap == nil, pendingTap == nil, let focus = state.focusTask else { return }
-        var ids = current.map(\.id)
-        if index < ids.count { ids[index] = focus.id }
+        var ids = circleTasks.map(\.id)
+        if let i = ids.firstIndex(of: task.id) { ids[i] = focus.id }
         // First its circle and its name go (from the top down both sides)…
         pendingTap = task.id
         withAnimation(.easeInOut(duration: Self.ringOutDuration)) { _ = ringOff.insert(task.id) }
@@ -141,6 +181,7 @@ struct CornerArcView: View {
         tr.disablesAnimations = true
         withTransaction(tr) {
             order = s.order
+            swappedTo = s.incoming.id
             state.setFocus(s.incoming.id)
             state.cornerSwapping = false
             swap = nil
@@ -265,20 +306,34 @@ private struct RingShape: Shape {
 struct CornerBubbles: View {
     @ObservedObject var state: AppState
     @State private var shown = 0
+    @State private var page = 0
 
     static let maxShown = 4
 
-    static func tasks(_ state: AppState) -> [AgentTask] {
+    private static func others(_ state: AppState) -> [AgentTask] {
         let focus = state.focusTask?.id
-        return Array(state.tasks.filter { $0.id != focus }.prefix(maxShown))
+        return state.tasks.filter { $0.id != focus }
     }
 
-    static func count(_ state: AppState) -> Int { tasks(state).count }
+    /// The small tiles out of the tile: a page of pills, and one more holding the arrows
+    /// when there are several pages (always the last place, whatever the page).
+    static func count(_ state: AppState) -> Int {
+        let n = others(state).count
+        return n > maxShown ? maxShown + 1 : n
+    }
+
+    /// Whether `point` (tile coordinates, y down) is on the tile holding the arrows.
+    static func isPagerHit(_ point: CGPoint, _ state: AppState) -> Bool {
+        others(state).count > maxShown
+            && state.islandPlacement.bubbleContains(point, index: maxShown)
+    }
 
     var body: some View {
         let placement = state.islandPlacement
-        let tasks = Self.tasks(state)
-        let centers = placement.bubbleCenters(count: tasks.count)
+        let others = Self.others(state)
+        let shownPage = max(0, min(page, (others.count - 1) / Self.maxShown))
+        let tasks = Array(others.dropFirst(shownPage * Self.maxShown).prefix(Self.maxShown))
+        let centers = placement.bubbleCenters(count: Self.count(state))
         let t = IslandPlacement.tile
         ZStack(alignment: .topLeading) {
             ForEach(Array(tasks.enumerated()), id: \.element.id) { i, task in
@@ -290,10 +345,29 @@ struct CornerBubbles: View {
                     .opacity(out ? 1 : 0)
                     .position(out ? centers[i] : from)
             }
+            if others.count > Self.maxShown {
+                let i = Self.maxShown
+                let out = i < shown
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(Color.black)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.12), lineWidth: 1)
+                    PillPager(tasks: others, page: shownPage, perPage: Self.maxShown, spacing: 2) { newPage in
+                        withAnimation(.spring(response: 0.32, dampingFraction: 0.68)) { page = newPage }
+                        SoundEngine.shared.play("blip")
+                    }
+                }
+                .frame(width: IslandPlacement.bubble, height: IslandPlacement.bubble)
+                .shadow(color: .black.opacity(0.45), radius: 10, y: 4)
+                .scaleEffect(out ? 1 : 0.3)
+                .opacity(out ? 1 : 0)
+                .position(out ? centers[i] : centers[i - 1])
+            }
         }
         .frame(width: t, height: t, alignment: .topLeading)
         .onAppear {
-            for i in 0..<tasks.count {
+            for i in 0..<Self.count(state) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.06 * Double(i)) {
                     withAnimation(.spring(response: 0.32, dampingFraction: 0.68)) { shown = max(shown, i + 1) }
                 }

@@ -34,7 +34,6 @@ final class MockPills: PillControlling {
 
     func activeIds()  -> Set<String> { active }
     func mainPillId() -> String      { main }
-    func activeCount() -> Int        { active.count }
     func toggleIntegration(_ id: String) {
         calls.append("toggle:\(id)")
         if active.contains(id) { active.remove(id) } else { active.insert(id) }
@@ -149,42 +148,25 @@ enum VoiceActionRunnerTests {
         let addAgain  = await runner.run(.pillAdd(id: "integration_github"), availablePills: pills)
         check("pillAdd already active → success", addAgain.outcome, .success)
 
-        // Limit → question
+        // No limit: a fifth pill is added without a question
         pills_.active = Set(["integration_github","integration_vercel","integration_notion","integration_resend"])
         pills_.calls  = []
-        let addLimit  = await runner.run(.pillAdd(id: "agent_cursor"), availablePills: pills)
-        if case .question(_) = addLimit.outcome { print("✓  pillAdd limit → question"); pass += 1 }
-        else { print("✗  pillAdd limit — got \(addLimit.outcome)"); fail += 1 }
-        check("pillAdd limit sets pendingQuestion", runner.pendingQuestion != nil, true)
-
-        // ── Follow-up answer after question ──────────────────────────────────
-        // pills_ has 4 active: github, vercel, notion, resend. Pending: add agent_cursor.
-        // User says "Stripe" → resolve to integration_stripe? But stripe is not active...
-        // Let's use "GitHub" as the answer (it's active, will be removed, cursor added)
-        pills_.active = Set(["integration_github","integration_vercel","integration_notion","integration_resend"])
-        pills_.calls  = []
-        // Re-set pending (it was consumed if we ran again, so re-trigger):
-        _ = await runner.run(.pillAdd(id: "agent_cursor"), availablePills: pills)
-        check("pending question set before answer", runner.pendingQuestion != nil, true)
-        pills_.calls = []
-        let answer = await runner.handleAnswer("GitHub", availablePills: pills)
-        check("question answer → success", answer.outcome, .success)
-        check("question answer → github removed", pills_.calls.contains("toggle:integration_github"), true)
-        check("question answer → cursor added",   pills_.calls.contains("toggle:agent_cursor"), true)
-        check("pending question cleared after answer", runner.pendingQuestion == nil, true)
+        let addFifth  = await runner.run(.pillAdd(id: "agent_cursor"), availablePills: pills)
+        check("fifth pill → success", addFifth.outcome, .success)
+        check("fifth pill → added",   pills_.calls, ["toggle:agent_cursor"])
+        check("fifth pill → no question", runner.pendingQuestion == nil, true)
 
         // Answer given as a sentence (real transcript from a test on the Mac)
-        pills_.active = Set(["integration_github","integration_vercel","integration_stripe","integration_resend"])
-        _ = await runner.run(.pillAdd(id: "agent_gemini"), availablePills: pills)
+        pills_.active = ["integration_github", "integration_stripe"]
+        _ = runner.askIfIncomplete("enlève-moi la")
         pills_.calls = []
         let sentence = await runner.handleAnswer("Je retire la pilule Stripe", availablePills: pills)
         check("sentence answer → success", sentence.outcome, .success)
         check("sentence answer → stripe removed", pills_.calls.contains("toggle:integration_stripe"), true)
-        check("sentence answer → gemini added",   pills_.calls.contains("toggle:agent_gemini"), true)
+        check("pending question cleared after answer", runner.pendingQuestion == nil, true)
 
         // Unclear answer → asked once more, then given up
-        pills_.active = Set(["integration_github","integration_vercel","integration_stripe","integration_resend"])
-        _ = await runner.run(.pillAdd(id: "agent_gemini"), availablePills: pills)
+        _ = runner.askIfIncomplete("enlève-moi la")
         let unclear1 = await runner.handleAnswer("on s en fout c est", availablePills: pills)
         if case .question = unclear1.outcome { print("✓  unclear answer → asked again"); pass += 1 }
         else { print("✗  unclear answer — got \(unclear1.outcome)"); fail += 1 }
@@ -320,6 +302,10 @@ enum VoiceActionRunnerTests {
         check("pillAddMultiple → success",  addMulti.outcome, .success)
         check("pillAddMultiple → vercel",   pills_.calls.contains("toggle:integration_vercel"), true)
         check("pillAddMultiple → stripe",   pills_.calls.contains("toggle:integration_stripe"), true)
+        // Past four pills, all of them are added
+        pills_.active = ["integration_github", "integration_n8n", "integration_notion", "integration_resend"]
+        _ = await runner.run(.pillAddMultiple(ids: ["integration_vercel", "integration_stripe"]), availablePills: pills)
+        check("pillAddMultiple past four → all added", pills_.active.count, 6)
 
         // ── Pills: remove ─────────────────────────────────────────────────────
         pills_.active = ["integration_github", "integration_vercel"]
@@ -365,8 +351,7 @@ enum VoiceActionRunnerTests {
         check("pillOnly → added vercel",   pills_.calls.contains("toggle:integration_vercel"), true)
 
         // ── Follow-up: empty transcript cancels question ─────────────────────
-        pills_.active = Set(["integration_github","integration_vercel","integration_notion","integration_resend"])
-        _ = await runner.run(.pillAdd(id: "agent_cursor"), availablePills: pills)
+        _ = runner.askIfIncomplete("enlève-moi la")
         check("pending set before empty answer", runner.pendingQuestion != nil, true)
         let emptyAnswer = await runner.handleAnswer("", availablePills: pills)
         check("empty answer → success (cancelled)", emptyAnswer.outcome, .success)

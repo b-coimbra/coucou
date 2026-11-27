@@ -71,6 +71,18 @@ enum IslandPlacementTests {
         let area = IslandPlacement.topRight.bubblesRect(count: 4)
         precondition(bubbles.allSatisfy { area.contains($0) } && area.contains(CGPoint(x: 30, y: 30)))
         precondition(IslandPlacement.bottomLeft.bubbleCenters(count: 2).allSatisfy { $0.x > 60 })
+        // More pills than places: the arrows' tile after four, and the arrows past the circle.
+        for p in IslandPlacement.allCases where p.isCorner {
+            let five = p.bubbleCenters(count: 5)
+            precondition(p.bubbleContains(five[4], index: 4) && !p.bubbleContains(five[3], index: 4))
+            precondition(p.bubblesRect(count: 5).contains(five[4]))
+            let a = p.arcPagerCenter(in: home), c = p.cornerArcCenter(in: home)
+            precondition(abs(a.x - c.x) + 20 <= IslandPlacement.cornerColumn, "\(p) \(a) in the corner column")
+            precondition(a.y > 0 && a.y < home.height)
+            for q in p.arcPoints(count: 5, in: home) {
+                precondition(hypot(q.x - a.x, q.y - a.y) > 36, "\(p) \(q) clear of the arrows")
+            }
+        }
         let t = IslandPlacement.bottomRight.dropTarget(screen: screen, visible: visible, panelSize: panel)
         precondition(t == CGRect(x: 1442, y: 80, width: 60, height: 60), "\(t)")
         print("IslandPlacement tests: all passed")

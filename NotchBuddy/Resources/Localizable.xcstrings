@@ -1,6 +1,48 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "pills.next-page" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "الحبوب التالية" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "পরবর্তী পিল" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Nächste Pills" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Next pills" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Píldoras siguientes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Pills suivantes" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "अगली पिल्स" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Pil berikutnya" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "次のピル" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "다음 모찌" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Próximas pílulas" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Следующие пилюли" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "แถบถัดไป" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Sonraki haplar" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "下一页胶囊" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "下一頁標籤" } }
+      }
+    },
+    "pills.previous-page" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "الحبوب السابقة" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "পূর্ববর্তী পিল" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Vorherige Pills" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Previous pills" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Píldoras anteriores" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Pills précédentes" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "पिछली पिल्स" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Pil sebelumnya" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "前のピル" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "이전 모찌" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Pílulas anteriores" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Предыдущие пилюли" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "แถบก่อนหน้า" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Önceki haplar" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "上一页胶囊" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "上一頁標籤" } }
+      }
+    },
     "edge-light.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20126,79 +20168,79 @@
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "أفرغ مكانًا في الحبوب النشطة لعرض حبة واتساب (4 كحد أقصى)."
+            "value" : "فعّل حبة واتساب في الحبوب النشطة لعرضها."
           }
         },
         "bn" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp পিল দেখাতে সক্রিয় পিলে জায়গা খালি করুন (সর্বোচ্চ ৪টি)।"
+            "value" : "WhatsApp পিল দেখাতে সক্রিয় পিলে এটি চালু করুন।"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Make room in Active pills to show the WhatsApp pill (4 at most)."
+            "value" : "Turn on the WhatsApp pill in Active pills to show it."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Libera un hueco en Píldoras activas para mostrar la de WhatsApp (4 como máximo)."
+            "value" : "Activa la píldora de WhatsApp en Píldoras activas para mostrarla."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Libère une place dans Pills actives pour afficher la pill WhatsApp (4 au maximum)."
+            "value" : "Active la pill WhatsApp dans Pills actives pour l’afficher."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp पिल दिखाने के लिए सक्रिय पिल्स में जगह बनाएँ (अधिकतम 4)।"
+            "value" : "WhatsApp पिल दिखाने के लिए उसे सक्रिय पिल्स में चालू करें।"
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kosongkan tempat di Pil aktif untuk menampilkan pil WhatsApp (maksimal 4)."
+            "value" : "Nyalakan pil WhatsApp di Pil aktif untuk menampilkannya."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp のピルを表示するには、アクティブなピルに空きを作ってください（最大 4 つ）。"
+            "value" : "WhatsApp のピルを表示するには、アクティブなピルでオンにしてください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WhatsApp 모찌를 띄우려면 활성화된 모찌들에 자리를 비워 주세요(최대 4개)."
+            "value" : "WhatsApp 모찌를 띄우려면 활성화된 모찌들에서 켜 주세요."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Libere um espaço em Pílulas ativas para mostrar a do WhatsApp (no máximo 4)."
+            "value" : "Ative a pílula do WhatsApp em Pílulas ativas para mostrá-la."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Освободите место в активных пилюлях для WhatsApp (не больше 4)."
+            "value" : "Включите пилюлю WhatsApp в активных пилюлях, чтобы показать её."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请在“活跃胶囊”中腾出位置以显示 WhatsApp（最多 4 个）。"
+            "value" : "请在“活跃胶囊”中开启 WhatsApp 胶囊以显示它。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請在「啟用的標籤」中騰出空間以顯示 WhatsApp 標籤（最多 4 個）。"
+            "value" : "請在「啟用的標籤」中開啟 WhatsApp 標籤以顯示。"
           }
         }
       }
@@ -84537,106 +84579,6 @@
         }
       }
     },
-    "settings.slots-used %lld" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld/4 فتحات مستخدمة"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld/4 স্লট ব্যবহৃত"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld/4 Plätze belegt"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld/4 slots used"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld/4 ranuras usadas"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld/4 emplacements utilisés"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld/4 स्लॉट उपयोग में"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld/4 slot digunakan"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld/4 枠使用中"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld/4칸 사용 중"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld/4 slots usados"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld/4 слотов занято"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ใช้ช่องไปแล้ว %lld/4"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld/4 yuva kullanılıyor"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已用 %lld/4 个插槽"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已使用 %lld/4 個欄位"
-          }
-        }
-      }
-    },
     "settings.window.title" : {
       "localizations" : {
         "ar" : {
@@ -94535,106 +94477,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "哪個播放列表？"
-          }
-        }
-      }
-    },
-    "voice.ask-which-remove" : {
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4 نشطة — أيها أزيل؟"
-          }
-        },
-        "bn" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4টি সক্রিয় — কোনটি সরাবো?"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4 aktiv — welche entfernen?"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4 active — remove which?"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4 activas — ¿cuál quitar?"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4 actives — laquelle retirer ?"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4 सक्रिय — कौन सा हटाएं?"
-          }
-        },
-        "id" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4 aktif — mana yang dihapus?"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4 つ有効です — どれを削除しますか？"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "자리가 꽉 찼어요(4개) — 누굴 뺄까요?"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4 ativas — qual remover?"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4 активно — что удалить?"
-          }
-        },
-        "th" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "มีแถบที่ใช้งานอยู่ 4 รายการ ต้องการนำรายการใดออก"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4 etkin — hangisi kaldırılsın?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "4 个激活 — 删除哪个？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已有 4 個啟用項目，要移除哪一個？"
           }
         }
       }

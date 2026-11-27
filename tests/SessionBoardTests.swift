@@ -187,5 +187,24 @@ enum SessionBoardTests {
                         C(id: "q5", state: .question, poppedOut: false)]
         precondition(ids(SessionBoard.slots(lateIdle)) == ["w1", "q5", "w3", "w4"])
         precondition(SessionBoard.slots([]).isEmpty)
+
+        // Pages: the places first, then 4 by 4 the pills they have no room for
+        func pageIds(_ cells: [C]) -> [[String]] { SessionBoard.pages(cells).map(ids) }
+        precondition(pageIds([]).isEmpty)
+        precondition(pageIds(Array(plain.prefix(4))) == [["p1", "p2", "p3", "p4"]])
+        precondition(pageIds(plain) == [["p1", "p2", "p3", "p4"], ["p5", "p6"]])
+        let nine = (1...9).map { C(id: "p\($0)", state: .idle, poppedOut: false) }
+        precondition(pageIds(nine).map(\.count) == [4, 4, 1])
+        // A pill moved to the first page leaves its place to the next ones; none is lost
+        precondition(pageIds(lateIdle) == [["w1", "q5", "w3", "w4"], ["i2"]])
+        // The pill behind "+N" is on a further page, with the others
+        precondition(pageIds(late) == [["w1", "w2", "w3", "+1:q6"], ["w4", "i5", "q6"]])
+
+        // The page of a focused pill: that of the pills around it, within the pages there are
+        precondition(SessionBoard.page(ofPosition: 0, pageCount: 3) == 0)
+        precondition(SessionBoard.page(ofPosition: 3, pageCount: 3) == 0)
+        precondition(SessionBoard.page(ofPosition: 4, pageCount: 3) == 1)
+        precondition(SessionBoard.page(ofPosition: 8, pageCount: 2) == 1)
+        precondition(SessionBoard.page(ofPosition: 2, pageCount: 0) == 0)
     }
 }

@@ -179,13 +179,11 @@ final class WhatsAppController: ObservableObject {
         update()
     }
 
-    /// Turns the integration on or off; on also makes room for its pill when a slot is free.
+    /// Turns the integration on or off, and its pill with it.
     func setEnabled(_ on: Bool) {
         WhatsAppSettings.enabled = on
         let state = AppState.shared
-        if on, !state.activeIntegrations.contains(Self.pillId), state.activeIntegrations.count < 4 {
-            state.toggleIntegration(Self.pillId)
-        } else if !on, state.activeIntegrations.contains(Self.pillId) {
+        if on != state.activeIntegrations.contains(Self.pillId) {
             state.toggleIntegration(Self.pillId)
         }
         settingsChanged()

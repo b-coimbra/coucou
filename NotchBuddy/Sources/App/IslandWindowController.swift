@@ -652,6 +652,7 @@ final class IslandWindowController: NSWindowController {
         withAnimation(anim) { state.mode = mode }
         if mode == .expanded { SoundEngine.shared.play("open") }
         if prev == .expanded {
+            state.revealFocusedPill()   // a page left by hand is not kept for next time
             SoundEngine.shared.play("close")
             if fsm.isHeldOpen?() != true { state.isPinned = false }
             HookServer.shared.restoreAlertFocus()
@@ -869,6 +870,7 @@ final class IslandWindowController: NSWindowController {
     private func switchToPill(number: Int) {
         guard number >= 1, number <= state.tasks.count else { return }
         state.setFocus(state.tasks[number - 1].id)
+        state.revealFocusedPill()   // the same pill again, after paging away from it
         state.cardSelection = nil
         expand(to: .overview)
     }
@@ -1000,6 +1002,8 @@ final class IslandWindowController: NSWindowController {
             MainActor.assumeIsolated {
                 guard self.wasInIsland else { return }
                 self.fsm.userInteracted()
+                // The arrows among a corner tile's small tiles page them: no click on the island.
+                if self.isCornerPagerHit(event.locationInWindow) { return }
                 self.pendingIslandClick = true
                 self.hoverTimer?.cancel()
                 self.botHoverTimer?.cancel()
@@ -1479,6 +1483,13 @@ final class IslandWindowController: NSWindowController {
         }
         confusedRecoveryTimer = recovery
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.3, execute: recovery)
+    }
+
+    private func isCornerPagerHit(_ windowPoint: CGPoint) -> Bool {
+        guard state.mode == .compact, state.islandPlacement.isCorner, state.cornerPeek else { return false }
+        let island = islandPanel.currentIslandFrame(nw: notchW, nh: notchH)
+        let inTile = CGPoint(x: windowPoint.x - island.minX, y: island.maxY - windowPoint.y)
+        return CornerBubbles.isPagerHit(inTile, state)
     }
 
     // MARK: - Bot hit test (for slap trigger)

@@ -4291,78 +4291,178 @@ struct AgentPillsView: View {
     ]
 
     var body: some View {
+        let pages = state.pillPages
+        let page = state.shownPillPage
+        let slots = pages.indices.contains(page) ? pages[page] : []
         VStack(spacing: 0) {
             Spacer(minLength: 0)
             LazyVGrid(columns: columns, spacing: 4) {
-                ForEach(state.gridSlots, id: \.id) { slot in
+                ForEach(slots, id: \.id) { slot in
                     switch slot {
                     case .pill(let id):
                         if let task = state.tasks.first(where: { $0.id == id }) { pill(task) }
                     case .waiting(let ids):
-                        WaitingStackPill(count: ids.count) {
-                            swapping = true
-                            state.setFocus(ids[0])
-                            SoundEngine.shared.play("blip")
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { swapping = false }
-                        }
+                        WaitingStackPill(count: ids.count) { select(ids[0]) }
                     }
                 }
             }
+            // With several pages, every page has the room of two rows: no jump on the last one.
+            .frame(height: pages.count > 1 ? 60 : nil, alignment: .top)
             .padding(.horizontal, 8)
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // The arrows sit in the room under the pills: neither the pills nor the card change size.
+        .overlay(alignment: .bottomLeading) {
+            if page > 0 {
+                PillPageButton(forward: false, alert: alertColor(pages.prefix(page).flatMap { $0 })) {
+                    show(page: page - 1)
+                }
+                .padding(.leading, 12)
+                .padding(.bottom, 2)
+            }
+        }
+        .overlay(alignment: .bottomTrailing) {
+            if page < pages.count - 1 {
+                PillPageButton(forward: true, alert: alertColor(pages.dropFirst(page + 1).flatMap { $0 })) {
+                    show(page: page + 1)
+                }
+                .padding(.trailing, 12)
+                .padding(.bottom, 2)
+            }
+        }
+    }
+
+    private func show(page: Int) {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { state.pillPage = page }
+        SoundEngine.shared.play("blip")
+    }
+
+    /// A pill picked in the list.
+    private func select(_ id: String) {
+        swapping = true
+        state.setFocus(id)
+        SoundEngine.shared.play("blip")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { swapping = false }
+    }
+
+    /// A pill picked on this page: the list stays on it.
+    private func selectOnPage(_ id: String) {
+        let page = state.shownPillPage
+        select(id)
+        state.pillPage = page
+    }
+
+    /// The colour an arrow warns with when a pill in the places on its side wants a look.
+    private func alertColor(_ slots: [SessionBoard.Slot]) -> String? {
+        let ids = Set(slots.flatMap { slot -> [String] in
+            switch slot {
+            case .pill(let id): return [id]
+            case .waiting(let ids): return ids
+            }
+        })
+        return PillPageButton.alertColor(for: state.tasks.filter { ids.contains($0.id) })
     }
 
     @ViewBuilder
     private func pill(_ task: AgentTask) -> some View {
         #if !APPSTORE
         if task.id == CoucoudoroController.pillId {
-            CoucoudoroPill(task: task, state: state, swapping: $swapping) {
-                swapping = true
-                state.setFocus(task.id)
-                SoundEngine.shared.play("blip")
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { swapping = false }
-            }
+            CoucoudoroPill(task: task, state: state, swapping: $swapping) { selectOnPage(task.id) }
         } else if task.id == "integration_music" {
-            MusicPill(task: task, state: state, swapping: $swapping) {
-                swapping = true
-                state.setFocus(task.id)
-                SoundEngine.shared.play("blip")
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { swapping = false }
-            }
+            MusicPill(task: task, state: state, swapping: $swapping) { selectOnPage(task.id) }
         } else if task.id == "integration_spotify" {
-            SpotifyPill(task: task, swapping: $swapping) {
-                swapping = true
-                state.setFocus(task.id)
-                SoundEngine.shared.play("blip")
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { swapping = false }
-            }
+            SpotifyPill(task: task, swapping: $swapping) { selectOnPage(task.id) }
         } else {
-            AgentPill(task: task, state: state, swapping: $swapping) {
-                swapping = true
-                state.setFocus(task.id)
-                SoundEngine.shared.play("blip")
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { swapping = false }
-            }
+            AgentPill(task: task, state: state, swapping: $swapping) { selectOnPage(task.id) }
         }
         #else
         if task.id == CoucoudoroController.pillId {
-            CoucoudoroPill(task: task, state: state, swapping: $swapping) {
-                swapping = true
-                state.setFocus(task.id)
-                SoundEngine.shared.play("blip")
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { swapping = false }
-            }
+            CoucoudoroPill(task: task, state: state, swapping: $swapping) { selectOnPage(task.id) }
         } else {
-            AgentPill(task: task, state: state, swapping: $swapping) {
-                swapping = true
-                state.setFocus(task.id)
-                SoundEngine.shared.play("blip")
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { swapping = false }
-            }
+            AgentPill(task: task, state: state, swapping: $swapping) { selectOnPage(task.id) }
         }
         #endif
+    }
+}
+
+/// The small chevron that turns the page of pills, in the island and around the corner's circle.
+/// `alert` is the colour of a dot: a pill on that side wants a look.
+struct PillPageButton: View {
+    let forward: Bool
+    var alert: String? = nil
+    let action: () -> Void
+    @State private var isHovered = false
+
+    private var label: String {
+        forward ? String(localized: "pills.next-page") : String(localized: "pills.previous-page")
+    }
+
+    /// Amber for a pill that waits, else its badge's colour (error first, then finished).
+    static func alertColor(for tasks: [AgentTask]) -> String? {
+        if tasks.contains(where: { $0.state == .approval || $0.state == .question || $0.pillBadge == .approval }) {
+            return "#F5A524"
+        }
+        if tasks.contains(where: { $0.pillBadge == .error }) { return "#F4505E" }
+        return tasks.contains(where: { $0.pillBadge == .finished }) ? "#22C55E" : nil
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: forward ? "chevron.right" : "chevron.left")
+                .font(.system(size: 8, weight: .semibold))
+                .foregroundColor(Color(hex: isHovered ? "#F5F6F8" : "#8E939C"))
+                .frame(width: 16, height: 16)
+                .background(Color.white.opacity(isHovered ? 0.14 : 0.07))
+                .clipShape(Circle())
+                .overlay(alignment: .topTrailing) {
+                    if let alert {
+                        Circle()
+                            .fill(Color(hex: alert))
+                            .frame(width: 5, height: 5)
+                    }
+                }
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .scaleEffect(isHovered ? 1.1 : 1.0)
+        .onHover { hovering in
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) { isHovered = hovering }
+        }
+        .help(label)
+        .accessibilityLabel(Text(label))
+    }
+}
+
+/// Both arrows side by side, for the corner island: each keeps its place, shown only when
+/// there is a page on its side.
+struct PillPager: View {
+    /// Every pill in the list, `perPage` to a page.
+    let tasks: [AgentTask]
+    let page: Int
+    let perPage: Int
+    var spacing: CGFloat = 6
+    let show: (Int) -> Void
+
+    var body: some View {
+        let hasPrevious = page > 0
+        let hasNext = (page + 1) * perPage < tasks.count
+        HStack(spacing: spacing) {
+            PillPageButton(forward: false,
+                           alert: PillPageButton.alertColor(for: Array(tasks.prefix(page * perPage)))) {
+                show(page - 1)
+            }
+            .opacity(hasPrevious ? 1 : 0)
+            .disabled(!hasPrevious)
+            .accessibilityHidden(!hasPrevious)
+            PillPageButton(forward: true,
+                           alert: PillPageButton.alertColor(for: Array(tasks.dropFirst((page + 1) * perPage)))) {
+                show(page + 1)
+            }
+            .opacity(hasNext ? 1 : 0)
+            .disabled(!hasNext)
+            .accessibilityHidden(!hasNext)
+        }
     }
 }
 
