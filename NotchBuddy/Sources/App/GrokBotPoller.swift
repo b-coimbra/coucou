@@ -9,6 +9,8 @@ final class GrokBotPoller: @unchecked Sendable {
     static let shared = GrokBotPoller()
     
     private var timer: DispatchSourceTimer?
+    /// Serial: the reader's cache and the detector must never be used by two polls at once
+    private let queue = DispatchQueue(label: "fr.louisraille.GrokBotPoller", qos: .background)
     private let reader: GrokBotReader
     private let detector: GrokBotNewMessageDetector
     
@@ -21,7 +23,7 @@ final class GrokBotPoller: @unchecked Sendable {
         guard timer == nil else { return }
         
         // Poll every 2 seconds as specified
-        let t = DispatchSource.makeTimerSource(queue: .global(qos: .background))
+        let t = DispatchSource.makeTimerSource(queue: queue)
         t.schedule(deadline: .now() + 1, repeating: 2.0, leeway: .milliseconds(500))
         t.setEventHandler { [weak self] in self?.poll() }
         t.resume()
@@ -35,7 +37,7 @@ final class GrokBotPoller: @unchecked Sendable {
     
     // MARK: - Poll
     
-    func pollNow() { poll() }
+    func pollNow() { queue.async { [weak self] in self?.poll() } }
     
     private func poll() {
         guard !DemoEngine.isPollerPaused else { return }
@@ -78,12 +80,11 @@ final class GrokBotPoller: @unchecked Sendable {
         state.grokBotLatestMessages = latest
         
         // Handle new messages
-        guard !newMessages.isEmpty else { return }
+        guard let newest = newMessages.last else { return }
         guard let taskIdx = state.tasks.firstIndex(where: { $0.id == "agent_grokbot" }) else { return }
-        
+
         let focused = state.focusId == "agent_grokbot"
-        let newest = newMessages.last!
-        
+
         // Show the newest message
         state.tasks[taskIdx].state = .finished
         state.tasks[taskIdx].steps = ["\(newest.botName): \(preview(newest.text))"]

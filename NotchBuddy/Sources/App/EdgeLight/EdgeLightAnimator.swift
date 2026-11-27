@@ -20,6 +20,16 @@ private func mix(_ a: (CGFloat, CGFloat, CGFloat), _ b: (CGFloat, CGFloat, CGFlo
     )
 }
 
+/// Color at position x (in palette steps), blended with the next one.
+/// White for an empty palette or a non-finite x, where `% 0` or Int(x) would trap.
+private func paletteColor(_ palette: [(CGFloat, CGFloat, CGFloat)], at x: CGFloat) -> (CGFloat, CGFloat, CGFloat) {
+    guard !palette.isEmpty, x.isFinite, x >= 0, x < 1e9 else { return (1, 1, 1) }
+    let i = Int(x) % palette.count
+    let f = x - floor(x)
+    let smoothF = f * f * (3 - 2 * f)  // Smooth color transitions
+    return mix(palette[i], palette[(i + 1) % palette.count], smoothF)
+}
+
 // MARK: - Comet Animation
 
 struct EdgeLightComet {
@@ -157,13 +167,7 @@ struct EdgeLightComet {
         let perimeter = path.perimeter
         let u = abs(((s - perimeter / 2.0).truncatingRemainder(dividingBy: perimeter)) - perimeter / 2.0) / (perimeter / 2.0)
         
-        let n = CGFloat(palette.count)
-        let x = u * n
-        let i = Int(x) % palette.count
-        let f = x - floor(x)
-        let smoothF = f * f * (3 - 2 * f)  // Smooth color transitions
-        
-        return mix(palette[i], palette[(i + 1) % palette.count], smoothF)
+        return paletteColor(palette, at: u * CGFloat(palette.count))
     }
 }
 
@@ -230,11 +234,7 @@ struct EdgeLightContinuous {
         let u = CGFloat(segment) / CGFloat(segments) - CGFloat(time) / cycleDuration
         let n = CGFloat(palette.count)
         let x = (u.truncatingRemainder(dividingBy: 1.0) + 1.0).truncatingRemainder(dividingBy: 1.0) * n
-        let i = Int(x) % palette.count
-        let f = x - floor(x)
-        let smoothF = f * f * (3 - 2 * f)
-        
-        return mix(palette[i], palette[(i + 1) % palette.count], smoothF)
+        return paletteColor(palette, at: x)
     }
     
     private func renderComet(at s: CGFloat, time: TimeInterval, lineWidth: CGFloat,
@@ -266,11 +266,7 @@ struct EdgeLightContinuous {
         let u = s / path.perimeter - CGFloat(time) / cycleDuration
         let n = CGFloat(palette.count)
         let x = (u.truncatingRemainder(dividingBy: 1.0) + 1.0).truncatingRemainder(dividingBy: 1.0) * n
-        let i = Int(x) % palette.count
-        let f = x - floor(x)
-        let smoothF = f * f * (3 - 2 * f)
-        
-        return mix(palette[i], palette[(i + 1) % palette.count], smoothF)
+        return paletteColor(palette, at: x)
     }
 }
 

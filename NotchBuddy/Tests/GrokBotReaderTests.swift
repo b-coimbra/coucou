@@ -30,33 +30,25 @@ func assertTrue(_ condition: Bool, _ desc: String) {
 
 // MARK: - Blob name conversion
 
-/// Maps a key to its blob filename: lowercase unpadded base32 of the key + ".blob"
+/// Maps a key to its blob filename: lowercase unpadded RFC 4648 base32 of the key's UTF-8 bytes + ".blob"
 func grokBotBlobName(_ key: String) -> String {
-    guard let data = key.data(using: .utf8) else { return "" }
-    
-    // Convert to base32
-    var result = ""
-    for char in data {
-        let binary = String(char, radix: 2).padding(toLength: 8, withPad: "0", startingAt: 0)
-        result += binary
-    }
-    
-    // Group into 5-bit chunks and convert to base32
-    let base32Alphabet = "abcdefghijklmnopqrstuvwxyz234567"
-    var base32Result = ""
-    var i = 0
-    while i < result.count {
-        let end = min(i + 5, result.count)
-        let chunk = String(result[result.index(result.startIndex, offsetBy: i)..<result.index(result.startIndex, offsetBy: end)])
-        let padded = chunk.padding(toLength: 5, withPad: "0", startingAt: chunk.count)
-        if let value = Int(padded, radix: 2), value < base32Alphabet.count {
-            let idx = base32Alphabet.index(base32Alphabet.startIndex, offsetBy: value)
-            base32Result.append(base32Alphabet[idx])
+    let alphabet = Array("abcdefghijklmnopqrstuvwxyz234567")
+    var name = ""
+    var buffer: UInt32 = 0  // only the low `bits` bits are still pending
+    var bits = 0
+    for byte in key.utf8 {
+        buffer = (buffer << 8) | UInt32(byte)
+        bits += 8
+        while bits >= 5 {
+            bits -= 5
+            name.append(alphabet[Int((buffer >> bits) & 31)])
         }
-        i += 5
     }
-    
-    return base32Result.trimmingCharacters(in: CharacterSet(charactersIn: "=")) + ".blob"
+    // Last group: fill the missing low bits with zeros
+    if bits > 0 {
+        name.append(alphabet[Int((buffer << (5 - bits)) & 31)])
+    }
+    return name + ".blob"
 }
 
 print("Running GrokBotReaderTests...")
@@ -87,6 +79,27 @@ let blobA = grokBotBlobName(keyA)
 let blobB = grokBotBlobName(keyB)
 assertTrue(blobA != blobB, "Different keys produce different blob names")
 
+// Vectors from Python:
+//   base64.b32encode(key.encode()).decode().lower().rstrip('=') + '.blob'
+// Lengths 0 to 5 bytes cover every padding case.
+let blobVectors: [(key: String, blob: String)] = [
+    ("", ".blob"),
+    ("a", "me.blob"),
+    ("ab", "mfra.blob"),
+    ("abc", "mfrgg.blob"),
+    ("abcd", "mfrggza.blob"),
+    ("abcde", "mfrggzdf.blob"),
+    ("abcdef", "mfrggzdfmy.blob"),
+    ("account:slot", "mfrwg33vnz2du43mn52a.blob"),
+    ("roster/xyz-123", "ojxxg5dfoixxq6l2fuytemy.blob"),
+    ("sand.client.slice.client-meta.account-slot",
+     "onqw4zbomnwgszlooqxhg3djmnss4y3mnfsw45bnnvsxiyjomfrwg33vnz2c243mn52a.blob"),
+    ("café 🤖", "mnqwnq5jedyj7jew.blob"),
+]
+for vector in blobVectors {
+    assertEqual(grokBotBlobName(vector.key), vector.blob, "Blob name for \"\(vector.key)\"")
+}
+
 // MARK: - Markdown cleaning
 
 func cleanMarkdown(_ text: String) -> String {
@@ -102,16 +115,30 @@ func cleanMarkdown(_ text: String) -> String {
     result = result.replacingOccurrences(of: "__", with: "")
     result = result.replacingOccurrences(of: "`", with: "")
     
-    // List items: - text -> • text
-    result = result.replacingOccurrences(of: #"^([ \t]*)[-*][ \t]+"#,
-                                         with: "$1• ",
-                                         options: .regularExpression)
-    
-    // Remove heading markers (but keep # in "PR #194")
-    result = result.replacingOccurrences(of: #"^[ \t]*#{1,6}[ \t]*"#,
-                                         with: "",
-                                         options: [.regularExpression, .anchorsMatchLines])
-    
+    // Process line by line for line-anchored patterns
+    let lines = result.components(separatedBy: .newlines)
+    var processedLines: [String] = []
+
+    for line in lines {
+        var processed = line
+
+        // List items: - text -> • text
+        if let range = processed.range(of: #"^([ \t]*)[-*][ \t]+"#, options: .regularExpression) {
+            let leadingSpace = processed[..<range.upperBound].replacingOccurrences(of: #"[-*][ \t]+"#, with: "", options: .regularExpression)
+            let rest = processed[range.upperBound...]
+            processed = leadingSpace + "• " + rest
+        }
+
+        // Remove heading markers (but keep # in "PR #194")
+        if let range = processed.range(of: #"^[ \t]*#{1,6}[ \t]*"#, options: .regularExpression) {
+            processed.removeSubrange(range)
+        }
+
+        processedLines.append(processed)
+    }
+
+    result = processedLines.joined(separator: "\n")
+
     // Collapse multiple newlines
     result = result.replacingOccurrences(of: #"\n{3,}"#,
                                          with: "\n\n",
@@ -142,22 +169,30 @@ assertEqual(cleanMarkdown("Line 1\n\n\n\nLine 2"), "Line 1\n\nLine 2", "Multiple
 
 func timestampToMs(_ value: Any) -> Int {
     if let num = value as? Double {
-        return num < 1e11 ? Int(num * 1000) : Int(num)
+        return secondsOrMsToMs(num)
     }
     if let num = value as? Int {
-        return num < Int(1e11) ? num * 1000 : num
+        guard num < Int(1e11) else { return num }
+        let (ms, overflow) = num.multipliedReportingOverflow(by: 1000)
+        return overflow ? 0 : ms
     }
     if let str = value as? String {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         if let date = formatter.date(from: str) {
-            return Int(date.timeIntervalSince1970 * 1000)
+            return secondsOrMsToMs(date.timeIntervalSince1970)
         }
         if let num = Double(str) {
-            return Int(num < 1e11 ? num * 1000 : num)
+            return secondsOrMsToMs(num)
         }
     }
     return 0
+}
+
+/// 0 when the result doesn't fit in an Int ("nan", "inf", 1e300), where Int(_:) would trap
+func secondsOrMsToMs(_ num: Double) -> Int {
+    let ms = num < 1e11 ? num * 1000 : num
+    return Int(exactly: ms.rounded(.towardZero)) ?? 0
 }
 
 // 10. Test timestamp conversion from seconds
@@ -175,6 +210,13 @@ assertTrue(ts12 > 0, "ISO8601 string parsed")
 // 13. Test timestamp conversion from invalid string
 let ts13 = timestampToMs("invalid")
 assertEqual(ts13, 0, "Invalid string returns 0")
+
+// 14. Test values with no Int representation (they used to trap)
+for bad in ["nan", "inf", "-inf", "1e300"] {
+    assertEqual(timestampToMs(bad), 0, "\"\(bad)\" returns 0")
+}
+assertEqual(timestampToMs(1e300), 0, "Huge number returns 0")
+assertEqual(timestampToMs(Int.min), 0, "Int.min returns 0")
 
 print("")
 print("Results: \(passed) passed, \(failed) failed")

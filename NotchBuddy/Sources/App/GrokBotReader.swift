@@ -9,38 +9,25 @@ import Foundation
 // - Never persists message text to disk (only IDs and timestamps)
 // - Display-only text (never opens links or executes content)
 
-/// Maps a key to its blob filename: lowercase unpadded base32 of the key + ".blob"
+/// Maps a key to its blob filename: lowercase unpadded RFC 4648 base32 of the key's UTF-8 bytes + ".blob"
 func grokBotBlobName(_ key: String) -> String {
-    guard let data = key.data(using: .utf8) else { return "" }
-    let base32 = data.base64EncodedString()
-        .replacingOccurrences(of: "+", with: "")
-        .replacingOccurrences(of: "/", with: "")
-        .replacingOccurrences(of: "=", with: "")
-        .lowercased()
-    
-    // Convert base64 to base32 manually
-    var result = ""
-    for char in data {
-        let binary = String(char, radix: 2).padding(toLength: 8, withPad: "0", startingAt: 0)
-        result += binary
-    }
-    
-    // Group into 5-bit chunks and convert to base32
-    let base32Alphabet = "abcdefghijklmnopqrstuvwxyz234567"
-    var base32Result = ""
-    var i = 0
-    while i < result.count {
-        let end = min(i + 5, result.count)
-        let chunk = String(result[result.index(result.startIndex, offsetBy: i)..<result.index(result.startIndex, offsetBy: end)])
-        let padded = chunk.padding(toLength: 5, withPad: "0", startingAt: chunk.count)
-        if let value = Int(padded, radix: 2), value < base32Alphabet.count {
-            let idx = base32Alphabet.index(base32Alphabet.startIndex, offsetBy: value)
-            base32Result.append(base32Alphabet[idx])
+    let alphabet = Array("abcdefghijklmnopqrstuvwxyz234567")
+    var name = ""
+    var buffer: UInt32 = 0  // only the low `bits` bits are still pending
+    var bits = 0
+    for byte in key.utf8 {
+        buffer = (buffer << 8) | UInt32(byte)
+        bits += 8
+        while bits >= 5 {
+            bits -= 5
+            name.append(alphabet[Int((buffer >> bits) & 31)])
         }
-        i += 5
     }
-    
-    return base32Result.trimmingCharacters(in: CharacterSet(charactersIn: "=")) + ".blob"
+    // Last group: fill the missing low bits with zeros
+    if bits > 0 {
+        name.append(alphabet[Int((buffer << (5 - bits)) & 31)])
+    }
+    return name + ".blob"
 }
 
 // MARK: - Keys
@@ -94,13 +81,12 @@ final class GrokBotReader: @unchecked Sendable {
         
         guard let attrs = try? FileManager.default.attributesOfItem(atPath: path),
               let mtime = (attrs[.modificationDate] as? Date)?.timeIntervalSince1970,
+              let mtimeInt = Int(exactly: (mtime * 1_000_000).rounded(.towardZero)),
               let size = attrs[.size] as? Int else {
             cache.removeValue(forKey: blobName)
             return nil
         }
-        
-        let mtimeInt = Int(mtime * 1_000_000)
-        
+
         // Check cache
         if let cached = cache[blobName], cached.mtime == mtimeInt, cached.size == size {
             return cached.value
@@ -220,22 +206,30 @@ final class GrokBotReader: @unchecked Sendable {
     
     private func timestampToMs(_ value: Any) -> Int {
         if let num = value as? Double {
-            return num < 1e11 ? Int(num * 1000) : Int(num)
+            return secondsOrMsToMs(num)
         }
         if let num = value as? Int {
-            return num < Int(1e11) ? num * 1000 : num
+            guard num < Int(1e11) else { return num }
+            let (ms, overflow) = num.multipliedReportingOverflow(by: 1000)
+            return overflow ? 0 : ms
         }
         if let str = value as? String {
             let formatter = ISO8601DateFormatter()
             formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
             if let date = formatter.date(from: str) {
-                return Int(date.timeIntervalSince1970 * 1000)
+                return secondsOrMsToMs(date.timeIntervalSince1970)
             }
             if let num = Double(str) {
-                return Int(num < 1e11 ? num * 1000 : num)
+                return secondsOrMsToMs(num)
             }
         }
         return 0
+    }
+
+    /// 0 when the result doesn't fit in an Int ("nan", "inf", 1e300), where Int(_:) would trap
+    private func secondsOrMsToMs(_ num: Double) -> Int {
+        let ms = num < 1e11 ? num * 1000 : num
+        return Int(exactly: ms.rounded(.towardZero)) ?? 0
     }
 }
 

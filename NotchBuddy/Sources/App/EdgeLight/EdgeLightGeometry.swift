@@ -35,7 +35,8 @@ struct EdgeLightPath {
         
         self.rect = rect
         self.notch = notch
-        
+        let samplesPerCorner = max(1, samplesPerCorner)  // 0...negative traps, 0 divides by zero
+
         // Offset for line center: half width + inset
         let offset = lineWidth / 2.0 + max(0, inset)
         
@@ -129,7 +130,7 @@ struct EdgeLightPath {
         
         // Compute cumulative arc lengths
         var lengths: [CGFloat] = [0.0]
-        for i in 1..<cleaned.count {
+        for i in cleaned.indices.dropFirst() {
             lengths.append(lengths.last! + distance(cleaned[i], cleaned[i-1]))
         }
         self.arcLengths = lengths
@@ -187,9 +188,10 @@ struct EdgeLightPath {
     
     /// Get point at arc length s along the path
     func point(at s: CGFloat) -> CGPoint {
+        // A segment needs two points; a degenerate path (NaN rect or line width) has one
+        guard points.count > 1, perimeter > 0 else { return points.first ?? .zero }
         let s = s.truncatingRemainder(dividingBy: perimeter)
-        guard !points.isEmpty else { return .zero }
-        
+
         let idx = arcLengths.firstIndex { $0 > s } ?? 1
         let i = max(0, min(idx - 1, points.count - 2))
         
@@ -203,7 +205,9 @@ struct EdgeLightPath {
     
     /// Sample points along the path from s0 to s1
     func sample(from s0: CGFloat, to s1: CGFloat, step: CGFloat = 4.0) -> [CGPoint] {
-        let n = max(1, Int(abs(s1 - s0) / step))
+        // Int(_:) traps on NaN and infinity; the cap bounds the allocation
+        let count = abs(s1 - s0) / step
+        let n = count.isFinite ? Int(max(1, min(count, 10_000))) : 1
         return (0...n).map { i in
             point(at: s0 + (s1 - s0) * CGFloat(i) / CGFloat(n))
         }
@@ -237,6 +241,7 @@ struct EdgeLightNotch {
     
     /// Generate contour points around the notch (4 continuous-curvature corners)
     func contourPoints(topY: CGFloat, samplesPerCorner: Int) -> [CGPoint] {
+        let samplesPerCorner = max(1, samplesPerCorner)
         let height = bottomY - topY
         var topExt = max(0, topRadius) * SUPERELLIPSE_EXTENSION
         var baseExt = max(0, baseRadius) * SUPERELLIPSE_EXTENSION

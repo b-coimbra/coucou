@@ -44,6 +44,11 @@ final class EdgeLightOverlay: @unchecked Sendable {
         self.lastFrameTime = CACurrentMediaTime()
     }
     
+    /// The display link holds an unretained pointer to self: it must not outlive the overlay
+    deinit {
+        stopDisplayLink()
+    }
+
     @MainActor
     func show() {
         window.orderFrontRegardless()
