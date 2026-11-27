@@ -341,7 +341,7 @@ struct OverviewView: View {
             openClaudeDesktopApp()
         case "agent_grokbot":
             #if !APPSTORE
-            if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.xAI.Grok-Bot") {
+            if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anysphere.sand") {
                 NSWorkspace.shared.openApplication(at: url, configuration: .init(), completionHandler: nil)
             }
             #endif
@@ -2071,7 +2071,7 @@ struct IntegrationCardView: View {
             // Check if Grok Bot app is installed and storage directory exists
             let grokBotPath = NSHomeDirectory() + "/Library/Application Support/Grok Bot/sand-client-persistence"
             return FileManager.default.fileExists(atPath: grokBotPath) &&
-                   NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.xAI.Grok-Bot") != nil
+                   NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anysphere.sand") != nil
             #else
             return false
             #endif

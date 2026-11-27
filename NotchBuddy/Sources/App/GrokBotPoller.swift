@@ -95,6 +95,11 @@ final class GrokBotPoller: @unchecked Sendable {
         // Play sound and trigger Mochi reaction
         SoundEngine.shared.play("finish")
         
+        // Trigger edge light
+        #if !APPSTORE
+        EdgeLightController.shared.trigger(source: .grokBot)
+        #endif
+        
         // Auto-clear after 60s
         DispatchQueue.main.asyncAfter(deadline: .now() + 60) {
             guard let i = state.tasks.firstIndex(where: { $0.id == "agent_grokbot" }) else { return }

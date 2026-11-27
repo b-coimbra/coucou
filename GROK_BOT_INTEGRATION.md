@@ -182,8 +182,7 @@ Since this environment doesn't have macOS build tools:
 
 ## Known Assumptions
 
-1. **Grok Bot app bundle ID**: `com.xAI.Grok-Bot`
-   - If incorrect, update in `IslandViewContent.swift` line ~343
+1. **Grok Bot app bundle ID**: `com.anysphere.sand` ✅ Confirmed correct
    
 2. **Storage path**: `~/Library/Application Support/Grok Bot/sand-client-persistence/`
    - Matches Python reference; should be stable
