@@ -2226,6 +2226,7 @@ struct IntegrationCardView: View {
         if PillCatalog.definition(for: task.id)?.comingSoon == true { return Color(hex: "#6B7079") }
         let svcErr = task.id == "integration_stripe" ? appState.stripeError
                    : task.id == "integration_calcom"  ? appState.calcomError
+                   : task.id == "agent_grokbot"       ? appState.grokBotError
                    : nil
         if svcErr != nil { return Color(hex: "#F4505E") }
         return isConfigured ? Color(hex: "#22C55E") : Color(hex: "#F4505E")
@@ -2248,6 +2249,7 @@ struct IntegrationCardView: View {
         if PillCatalog.definition(for: task.id)?.comingSoon == true { return String(localized: "Coming soon") }
         let svcErr = task.id == "integration_stripe" ? appState.stripeError
                    : task.id == "integration_calcom"  ? appState.calcomError
+                   : task.id == "agent_grokbot"       ? appState.grokBotError
                    : nil
         if let err = svcErr { return err }
         // Pills driven by hooks, never by a key: the idle card reports whether the
@@ -2419,6 +2421,10 @@ struct IntegrationCardView: View {
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
             .padding(.top, 4)
+        } else if task.id == "agent_grokbot" && appState.grokBotLoaded {
+            // Read from disk by GrokBotPoller: bots and their latest messages
+            GrokBotCardView(task: task)
+                .transition(.opacity)
         } else {
             // Idle / not connected view — slides in from left when returning from detail
             VStack(alignment: .leading, spacing: 6) {

@@ -34,8 +34,13 @@ func grokBotBlobName(_ key: String) -> String {
 
 private let keyAccountSlot = "sand.client.slice.client-meta.account-slot"
 
+/// What Grok Bot leaves unencoded in a slot (Python's quote(slot, safe="")). ASCII only:
+/// CharacterSet.alphanumerics would also let accented and other non-ASCII letters through.
+private let slotAllowedCharacters = CharacterSet(
+    charactersIn: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~")
+
 private func accountPrefix(_ slot: String) -> String {
-    "sand.client.slice.account.\(slot.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? slot)."
+    "sand.client.slice.account.\(slot.addingPercentEncoding(withAllowedCharacters: slotAllowedCharacters) ?? slot)."
 }
 
 private func keyRoster(_ slot: String) -> String {
@@ -138,7 +143,7 @@ final class GrokBotReader: @unchecked Sendable {
                let entries = transcript["entries"] as? [[String: Any]] {
                 for entry in entries {
                     guard entry["kind"] as? String == "send-message" else { continue }
-                    guard let ts = entry["timestampMs"] as? Int else { continue }
+                    guard let ts = jsonTimestampMs(entry["timestampMs"]) else { continue }
                     
                     if let text = extractMessageText(entry), !text.isEmpty {
                         messages.append(GrokBotMessage(
@@ -204,6 +209,14 @@ final class GrokBotReader: @unchecked Sendable {
         return nil
     }
     
+    /// A JSON number of milliseconds, whole or not. nil for anything else, booleans included,
+    /// and for values with no Int representation.
+    private func jsonTimestampMs(_ value: Any?) -> Int? {
+        guard let number = value as? NSNumber,
+              CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
+        return Int(exactly: number.doubleValue.rounded(.towardZero))
+    }
+
     private func timestampToMs(_ value: Any) -> Int {
         if let num = value as? Double {
             return secondsOrMsToMs(num)
