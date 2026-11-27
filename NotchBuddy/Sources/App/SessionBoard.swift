@@ -261,4 +261,25 @@ struct SessionBoard: Sendable {
         let covered = visible.remove(at: newest ?? visible.count - 1)
         return visible.map { Slot.pill($0.id) } + [.waiting((waits(covered) ? [covered.id] : []) + left)]
     }
+
+    // MARK: Pages of places
+
+    /// The places of the open island, page by page. The first page is `slots` (waiting pills in
+    /// sight, "+N" for those left over); the pills it does not show follow, in their order.
+    static func pages(_ cells: [Cell], places: Int = 4) -> [[Slot]] {
+        let first = slots(cells, places: places)
+        guard !first.isEmpty else { return [] }
+        let shown = Set(first.map(\.id))
+        let rest = cells.filter { !shown.contains($0.id) }
+        return [first] + stride(from: 0, to: rest.count, by: places).map { start in
+            rest[start..<min(start + places, rest.count)].map { Slot.pill($0.id) }
+        }
+    }
+
+    /// The page to show for a focused pill that is `position`th among all the pills (from 0).
+    /// It has no place of its own (it is on the card): its page is the one with the pills that
+    /// come around it.
+    static func page(ofPosition position: Int, pageCount: Int, places: Int = 4) -> Int {
+        max(0, min(position / places, pageCount - 1))
+    }
 }

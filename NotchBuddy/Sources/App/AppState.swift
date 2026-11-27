@@ -13,7 +13,13 @@ final class AppState: ObservableObject {
 
     // Tasks
     @Published var tasks: [AgentTask] = []
-    @Published var focusId: String? = nil
+    @Published var focusId: String? = nil {
+        // Keyboard shortcuts, alerts, voice…: the list of pills follows the focused one.
+        didSet { if focusId != oldValue { revealFocusedPill() } }
+    }
+    /// The page of pills beside the focused one in the open island (AgentPillsView). May be
+    /// past the end once pills are gone: read `shownPillPage`.
+    @Published var pillPage = 0
 
     // Bot state override
     @Published var stateOverride: BotState? = nil
@@ -330,6 +336,10 @@ final class AppState: ObservableObject {
     @Published var openOnHover: Bool = false {
         didSet { UserDefaults.standard.set(openOnHover, forKey: "openOnHover") }
     }
+    /// A click outside Coucou folds the open island — persisted, on by default.
+    @Published var closeOnClickOutside: Bool = true {
+        didSet { UserDefaults.standard.set(closeOnClickOutside, forKey: "closeOnClickOutside") }
+    }
     /// A pill other than the one shown finishes or fails: show its card for a moment (#683).
     @Published var alertsFromAllPills: Bool = false {
         didSet { UserDefaults.standard.set(alertsFromAllPills, forKey: "alertsFromAllPills") }
@@ -397,7 +407,7 @@ final class AppState: ObservableObject {
         }
     }
 
-    // Active integration pills (main workspace pill excluded). Max 4.
+    // Active integration pills (main workspace pill excluded). No limit: the island pages them.
     @Published var activeIntegrations: Set<String> = ["integration_resend", "integration_n8n", "integration_vercel", "integration_github"] {
         didSet {
             if let data = try? JSONEncoder().encode(Array(activeIntegrations)) {
@@ -436,6 +446,12 @@ final class AppState: ObservableObject {
 
     // Cal.com (populated by CalcomPoller)
     @Published var calcomBookings: [CalcomBooking] = []
+    
+    // Grok Bot (populated by GrokBotPoller)
+    @Published var grokBotBots: [[String: Any]] = []
+    @Published var grokBotLatestMessages: [String: GrokBotMessage] = [:]
+    @Published var grokBotLoaded: Bool = false
+    @Published var grokBotError: String? = nil
     @Published var calcomLoaded: Bool = false
     @Published var calcomError: String? = nil
 
@@ -590,6 +606,7 @@ final class AppState: ObservableObject {
         if let v = ud.string(forKey: "lmstudioServerURL"), !v.isEmpty { lmstudioServerURL = v }
         // Migrate old 60s default → 15s
         if let v = ud.object(forKey: "openOnHover") as? Bool { openOnHover = v }
+        if let v = ud.object(forKey: "closeOnClickOutside") as? Bool { closeOnClickOutside = v }
         if let v = ud.object(forKey: "alertsFromAllPills") as? Bool { alertsFromAllPills = v }
         if let v = ud.object(forKey: "autoCloseInterval") as? Double {
             autoCloseInterval = (v == 60) ? 15 : v
@@ -639,9 +656,29 @@ final class AppState: ObservableObject {
     /// waiting one (a session popped out of its client's pill, or a pill waiting itself) in the
     /// place of an idle or finished pill, and "+N" for the waiting ones left over.
     var gridSlots: [SessionBoard.Slot] {
-        SessionBoard.slots(tasks.filter { $0.id != focusId }.map {
+        SessionBoard.slots(gridCells)
+    }
+
+    /// The same places, then a page for every 4 pills they have no room for.
+    var pillPages: [[SessionBoard.Slot]] {
+        SessionBoard.pages(gridCells)
+    }
+
+    private var gridCells: [SessionBoard.Cell] {
+        tasks.filter { $0.id != focusId }.map {
             SessionBoard.Cell(id: $0.id, state: $0.state, poppedOut: $0.id != $0.pill)
-        })
+        }
+    }
+
+    /// `pillPage`, kept within the pages there are now.
+    var shownPillPage: Int {
+        max(0, min(pillPage, pillPages.count - 1))
+    }
+
+    /// Pages the list of pills to the focused one.
+    func revealFocusedPill() {
+        let position = tasks.firstIndex { $0.id == focusId } ?? 0
+        setIfChanged(\.pillPage, SessionBoard.page(ofPosition: position, pageCount: pillPages.count))
     }
 
     var effectiveState: BotState {
@@ -764,9 +801,6 @@ final class AppState: ObservableObject {
         syncMode()
     }
 
-    /// Toggle a catalog pill on/off.
-    /// mainPillId: never toggleable (change via the Main picker first).
-    /// Max 4 non-main pills active at once.
     /// Switch the always-on workspace pill. Mirrors what the Settings Picker does.
     func setMainPill(_ id: String) {
         guard PillCatalog.available.contains(where: {
@@ -778,6 +812,8 @@ final class AppState: ObservableObject {
         setFocus(id)
     }
 
+    /// Toggle a catalog pill on/off.
+    /// mainPillId: never toggleable (change via the Main picker first).
     func toggleIntegration(_ id: String) {
         guard id != mainPillId else { return }
         guard PillCatalog.available.contains(where: { $0.id == id }) else { return }
@@ -786,7 +822,6 @@ final class AppState: ObservableObject {
             tasks.removeAll { $0.id == id }
             if focusId == id { focusId = mainPillId }
         } else {
-            guard activeIntegrations.count < 4 else { return }
             activeIntegrations.insert(id)
             if let def = PillCatalog.available.first(where: { $0.id == id }),
                !tasks.contains(where: { $0.id == id }) {

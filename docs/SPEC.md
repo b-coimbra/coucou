@@ -115,9 +115,9 @@ Toutes les pastilles déclarées sont définies dans `PillCatalog.all` (source d
 Couleurs : Cursor `#C0C4CC`, Codex `#2DD4BF`, Gemini CLI `#8AB4F8`, Antigravity `#E879F9`, Copilot CLI `#818CF8`, Muse Code `#38BDF8`, OpenCode `#4ADE80`, Amp `#F59E0B`, Hermes `#C084FC`, pastilles IA = `ChatProvider.accentHex` (Ollama `#FACC15`, LM Studio `#A3E635`).
 
 Règles :
-- **`mainPillId`** (défaut `integration_claude`) est la pastille workspace toujours chargée. Elle ne compte pas dans les 4 places. Modifiable via le sélecteur Main dans Settings.
+- **`mainPillId`** (défaut `integration_claude`) est la pastille workspace toujours chargée. Modifiable via le sélecteur Main dans Settings.
 - Quand `mainPillId != "integration_claude"`, la pastille VS Code est chargée seulement si une session VS Code est active (transient) ou si elle est cochée dans `activeIntegrations`.
-- Max 4 pastilles autres que `mainPillId` actives à la fois (`activeIntegrations`, persisté).
+- Sur macOS, pas de limite au nombre de pastilles actives (`activeIntegrations`, persisté). La carte de droite montre 4 places (grille 2×2, la pastille au premier plan est à gauche) ; au-delà, des chevrons sous la grille changent de page, sans changer la taille des pastilles ni la hauteur de l'île. La première page garde les pastilles en attente en vue (« +N » pour le reste) ; un changement de focus (⌘←/→, ⌘1–⌘9, ⌃⌥[ ], alerte) affiche la page correspondante ; une pastille de couleur sur un chevron signale une alerte de ce côté. La grille compacte montre la première page. Dans un coin : 5 Mochis sur l'arc et 4 petites tuiles au survol, avec les mêmes chevrons.
 - `removeTask` sur `mainPillId` ou une pastille déclarée + active → reset à `.idle` + `pillBadge = nil` + nom du catalogue (pas de suppression). Sinon → suppression normale.
 - `sortTasksByCatalog` : pastilles du catalogue dans l'ordre du catalogue ; pastilles hors catalogue juste après `integration_claude`.
 - Pastilles `githubOnly` : exclues des builds App Store (`#if APPSTORE`).
@@ -242,7 +242,7 @@ Fenêtre Réglages (SwiftUI, simple), sections dans l'ordre d'affichage :
 - **Sound** : son on/off, volume.
 - **Behavior** : fermeture après N s d'inactivité ; masquage après N min sans mouvement.
 - **Display** : écran de l'island — Screen with the notch (défaut), Main screen (menu bar), Follow the mouse, ou un écran précis par son nom (`NSScreen.localizedName`). Un écran mémorisé mais débranché s'affiche « Saved screen (not connected) ». Voir §1.
-- **Active pills** : pastilles actives (VS Code toujours actif + jusqu'à 4 autres) ; sélecteur de pastille principale (affiché uniquement si une pastille workspace est active) ; liste par catégorie (voir catalogue §5).
+- **Active pills** : pastilles actives (VS Code toujours actif + autant d'autres que voulu) ; sélecteur de pastille principale (affiché uniquement si une pastille workspace est active) ; liste par catégorie (voir catalogue §5).
 - **Hotkey** : raccourci global pour ouvrir le notch.
 - **Startup** : lancer au démarrage (`SMAppService.mainApp`).
 

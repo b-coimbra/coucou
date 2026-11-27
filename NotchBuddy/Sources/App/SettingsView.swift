@@ -200,6 +200,9 @@ struct SettingsView: View {
                         SettingsSidebarRow(title: "Voice",        icon: "mic.fill",                          color: "#F97316").tag("voice")
                         #endif
                         SettingsSidebarRow(title: "Shortcuts",    icon: "keyboard.fill",                     color: "#6366F1").tag("shortcuts")
+                        #if !APPSTORE
+                        SettingsSidebarRow(title: "edge-light.title", icon: "light.max",                     color: "#10B981").tag("edgelight")
+                        #endif
                     }
                     .listStyle(.sidebar)
                     .scrollContentBackground(.hidden)
@@ -277,6 +280,9 @@ struct SettingsView: View {
         case "integrations": return String(localized: "Integrations")
         case "voice":        return String(localized: "Voice")
         case "shortcuts":    return String(localized: "Shortcuts")
+        #if !APPSTORE
+        case "edgelight":    return String(localized: "edge-light.title")
+        #endif
         default:             return String(localized: "General")
         }
     }
@@ -291,6 +297,9 @@ struct SettingsView: View {
         case "voice":        voiceSection
         #endif
         case "shortcuts":    ShortcutsSettingsView()
+        #if !APPSTORE
+        case "edgelight":    EdgeLightSettingsView()
+        #endif
         default:             generalSection
         }
     }
@@ -353,6 +362,13 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Toggle("Open on hover", isOn: $state.openOnHover)
                     .help("Hovering the island opens it; it folds again shortly after the pointer leaves. Click inside to keep it open.")
+                VStack(alignment: .leading, spacing: 3) {
+                    Toggle(String(localized: "click-outside.toggle"), isOn: $state.closeOnClickOutside)
+                    Text("click-outside.subtitle")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 Toggle(String(localized: "alerts.all-pills"), isOn: $state.alertsFromAllPills)
                     .help(String(localized: "alerts.all-pills.help"))
                 HStack(spacing: 8) {
@@ -601,10 +617,6 @@ struct SettingsView: View {
                 Text("Choose the tools you use. Coucou only shows what you declare here.")
                     .font(.system(size: 11))
                     .foregroundColor(.secondary)
-
-                Text(String(format: String(localized: "settings.slots-used %lld"), Int64(state.activeIntegrations.count)))
-                    .font(.system(size: 11))
-                    .foregroundColor(state.activeIntegrations.count >= 4 ? .orange : .secondary)
 
                 Picker(String(localized: "settings.main-pill"), selection: $state.mainPillId) {
                     ForEach(PillCatalog.available.filter { $0.category == .workspace && !$0.comingSoon }, id: \.id) { def in
@@ -2433,7 +2445,6 @@ struct SettingsView: View {
     private func pillRow(_ def: PillDefinition) -> some View {
         let isMain = def.id == state.mainPillId
         let isOn   = state.activeIntegrations.contains(def.id)
-        let atMax  = state.activeIntegrations.count >= 4 && !isOn && !isMain
         let hint: String? = {
             if isMain { return nil }
             if def.comingSoon { return String(localized: "Coming soon") }
@@ -2487,7 +2498,7 @@ struct SettingsView: View {
             }
             Text(def.name)
                 .font(.system(size: 12))
-                .foregroundColor(atMax ? .secondary : .primary)
+                .foregroundColor(.primary)
             Spacer()
             if isMain {
                 Text("Main")
@@ -2504,7 +2515,6 @@ struct SettingsView: View {
                     set: { _ in state.toggleIntegration(def.id) }
                 ))
                 .labelsHidden()
-                .disabled(atMax)
             }
         }
     }

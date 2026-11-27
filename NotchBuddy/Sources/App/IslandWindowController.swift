@@ -20,6 +20,9 @@ final class IslandWindowController: NSWindowController {
     private var autoCloseSubscription: AnyCancellable?
     private var absenceSubscription: AnyCancellable?
     private var openOnHoverSubscription: AnyCancellable?
+    private var clickOutsideSubscription: AnyCancellable?
+    /// Installed only while the island is open and "Close when clicking outside" is on.
+    private var clickOutsideMonitor: Any?
 
     // Confused recovery timer (set by handleDizzy)
     private var confusedRecoveryTimer: DispatchWorkItem?
@@ -301,6 +304,14 @@ final class IslandWindowController: NSWindowController {
         openOnHoverSubscription = state.$openOnHover.sink { [weak self] on in
             self?.fsm.openOnHover = on
         }
+        // Follows the mode itself, so every way of opening or closing the island is covered.
+        clickOutsideSubscription = state.$mode
+            .combineLatest(state.$closeOnClickOutside)
+            .map { mode, enabled in enabled && mode == .expanded }
+            .removeDuplicates()
+            .sink { [weak self] watch in
+                self?.setClickOutsideMonitoring(watch)
+            }
 
         fsm.onTransition = { [weak self] from, to in
             guard let self else { return }
@@ -652,6 +663,7 @@ final class IslandWindowController: NSWindowController {
         withAnimation(anim) { state.mode = mode }
         if mode == .expanded { SoundEngine.shared.play("open") }
         if prev == .expanded {
+            state.revealFocusedPill()   // a page left by hand is not kept for next time
             SoundEngine.shared.play("close")
             if fsm.isHeldOpen?() != true { state.isPinned = false }
             HookServer.shared.restoreAlertFocus()
@@ -691,6 +703,36 @@ final class IslandWindowController: NSWindowController {
         fsm.collapse()
         setMode(.compact)
         window?.resignKey()
+    }
+
+    // MARK: - Click outside to close (Settings → General → Behavior)
+
+    /// A global monitor only receives the clicks sent to other apps: a click in one of
+    /// Coucou's own windows, popovers or menus never reaches it.
+    private func setClickOutsideMonitoring(_ watch: Bool) {
+        if watch, clickOutsideMonitor == nil {
+            clickOutsideMonitor = NSEvent.addGlobalMonitorForEvents(
+                matching: [.leftMouseDown, .rightMouseDown, .otherMouseDown]
+            ) { [weak self] _ in
+                MainActor.assumeIsolated { self?.handleClickOutside(at: NSEvent.mouseLocation) }
+            }
+        } else if !watch, let monitor = clickOutsideMonitor {
+            NSEvent.removeMonitor(monitor)
+            clickOutsideMonitor = nil
+        }
+    }
+
+    /// Same close as the cross. A pinned island (a waiting question, ⌘P) stays open, and so
+    /// does one that `collapse()` holds open (approval, mail draft, reply being typed).
+    private func handleClickOutside(at point: NSPoint) {
+        // An Open or Save panel or an alert of ours is up (a sandboxed panel is drawn by macOS).
+        guard state.mode == .expanded, !state.isPinned, NSApp.modalWindow == nil else { return }
+        // The system may report a click on something of ours here too (the menu bar icon).
+        // This is the window the click lands in: click-through ones (Edge Light, the clear
+        // part of the island's panel) don't count.
+        let hit = NSWindow.windowNumber(at: point, belowWindowWithWindowNumber: 0)
+        guard NSApp.window(withWindowNumber: hit) == nil else { return }
+        collapse()
     }
 
     // MARK: - Global hot keys (Carbon)
@@ -869,6 +911,7 @@ final class IslandWindowController: NSWindowController {
     private func switchToPill(number: Int) {
         guard number >= 1, number <= state.tasks.count else { return }
         state.setFocus(state.tasks[number - 1].id)
+        state.revealFocusedPill()   // the same pill again, after paging away from it
         state.cardSelection = nil
         expand(to: .overview)
     }
@@ -1000,6 +1043,8 @@ final class IslandWindowController: NSWindowController {
             MainActor.assumeIsolated {
                 guard self.wasInIsland else { return }
                 self.fsm.userInteracted()
+                // The arrows among a corner tile's small tiles page them: no click on the island.
+                if self.isCornerPagerHit(event.locationInWindow) { return }
                 self.pendingIslandClick = true
                 self.hoverTimer?.cancel()
                 self.botHoverTimer?.cancel()
@@ -1479,6 +1524,13 @@ final class IslandWindowController: NSWindowController {
         }
         confusedRecoveryTimer = recovery
         DispatchQueue.main.asyncAfter(deadline: .now() + 3.3, execute: recovery)
+    }
+
+    private func isCornerPagerHit(_ windowPoint: CGPoint) -> Bool {
+        guard state.mode == .compact, state.islandPlacement.isCorner, state.cornerPeek else { return false }
+        let island = islandPanel.currentIslandFrame(nw: notchW, nh: notchH)
+        let inTile = CGPoint(x: windowPoint.x - island.minX, y: island.maxY - windowPoint.y)
+        return CornerBubbles.isPagerHit(inTile, state)
     }
 
     // MARK: - Bot hit test (for slap trigger)

@@ -351,6 +351,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         StripePoller.shared.start()
         CalcomPoller.shared.start()
         NotionPoller.shared.start()
+        #if !APPSTORE
+        GrokBotPoller.shared.start()
+        #endif
         NotificationCenter.default.addObserver(self, selector: #selector(openSettingsFromNotification(_:)),
                                                name: .openFullSettings, object: nil)
         // After the greeting ends, fly Mochi back to the desktop if it was there at last quit
@@ -372,6 +375,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         MailController.shared.start()
         WhatsAppController.shared.start()
         MacUpdater.shared.start()
+        EdgeLightController.shared.start()
         ClaudeDesktopChatWatcher.shared.start()
         #endif
         CryptoController.shared.start()

@@ -94,6 +94,8 @@ enum PillCatalog {
         // `coucou_agent: claude-desktop` from CLAUDE_CODE_ENTRYPOINT, so nothing to install.
         .init(id: "agent_claude-desktop", name: "Claude Desktop", color: "#D97757",
               category: .agent,     subtitle: String(localized: "Agent"),        source: .agent),
+        .init(id: "agent_grokbot",       name: "Grok Bot",    color: "#10B981",
+              category: .agent,     subtitle: String(localized: "Agent"),        source: .agent,  githubOnly: true),
         // ── AI for the chat ──────────────────────────────────────────────────
         .init(id: "ai_anthropic",        name: "Anthropic",   color: ChatProvider.anthropic.accentHex,
               category: .ai,        subtitle: String(localized: "Chat"),         source: .n8n),

@@ -134,7 +134,7 @@ final class ClaudeVoiceBrain {
         wants_attachment and tell them to drop the file on the notch.
         When you need an answer from the user, end with one short question. Otherwise never end \
         with a question.
-        Pills in the notch (at most 4 besides the main one). Active: \(active.joined(separator: ", ")). \
+        Pills in the notch. Active: \(active.joined(separator: ", ")). \
         Available: \(available).
         """
     }
@@ -144,7 +144,7 @@ final class ClaudeVoiceBrain {
     private static let tools: [[String: Any]] = [
         [
             "name": "pills",
-            "description": "Add, remove, set as main or list the pills shown in the notch. At most 4 pills besides the main one: remove one first if needed.",
+            "description": "Add, remove, set as main or list the pills shown in the notch.",
             "input_schema": [
                 "type": "object",
                 "properties": [
@@ -223,7 +223,7 @@ final class ClaudeVoiceBrain {
         runner.commandLocale = VoiceSettings.answerLocale
         func perform(_ intent: VoiceIntent) async -> VoiceActionResult {
             let r = await runner.run(intent, availablePills: pills)
-            // The runner may ask its own follow-up (4-pill limit…): Claude asks instead.
+            // The runner may ask its own follow-up: Claude asks instead.
             runner.pendingQuestion = nil
             return r
         }
@@ -249,12 +249,8 @@ final class ClaudeVoiceBrain {
                 default:         lines.append("unknown action \(action)"); continue
                 }
                 let r = await perform(intent)
-                if case .question = r.outcome {
-                    lines.append("\(name): the notch is full (4 pills). Ask which pill to remove, then remove it and add \(name).")
-                } else {
-                    if r.outcome == .success { acted = true }
-                    lines.append("\(name): \(r.message)")
-                }
+                if r.outcome == .success { acted = true }
+                lines.append("\(name): \(r.message)")
             }
             return (lines.isEmpty ? "nothing done" : lines.joined(separator: "\n"), acted)
 

@@ -852,7 +852,15 @@ final class HookServer: @unchecked Sendable {
             if working > 0 { nbLog("Stop \(sessionId.prefix(8)) — \(working) other session(s) still working on \(agentId)") }
             syncPill(agentId)
             let finished = board.poppedPill(pill: agentId, session: key) ?? agentId
-            if !terminalInFront { SoundEngine.shared.play("finish") }
+            if !terminalInFront { 
+                SoundEngine.shared.play("finish")
+                #if !APPSTORE
+                // Trigger edge light for agent finish
+                if let source = Self.edgeLightSource(for: agentId) {
+                    EdgeLightController.shared.trigger(source: source)
+                }
+                #endif
+            }
             AppReview.noteFinished()
             if !terminalInFront && showsAlert(for: finished, focused: state.focusId == finished) {
                 expandIfNeeded(to: .finished)
@@ -950,7 +958,7 @@ final class HookServer: @unchecked Sendable {
 
     /// Creates a dynamic pill for a third-party agent on first event, then no-ops.
     /// ID format: "agent_<name>" — never collides with "integration_*" pills.
-    /// Inserted right after integration_claude so it appears in the visible prefix(4).
+    /// Inserted right after integration_claude so it appears on the first page of pills.
     @MainActor
     private func upsertExternalAgent(id: String, name: String, bundleId: String) {
         let state = AppState.shared
@@ -4657,6 +4665,27 @@ sys.exit(0)
 
 
 extension HookServer {
+    #if !APPSTORE
+    /// Map pill ID to edge light source
+    static func edgeLightSource(for pillId: String) -> EdgeLightSource? {
+        switch pillId {
+        case "integration_claude": return .claudeCode
+        case "agent_cursor": return .cursor
+        case "agent_codex": return .codex
+        case "agent_gemini": return .gemini
+        case "agent_antigravity": return .antigravity
+        case "agent_copilot": return .copilot
+        case "agent_muse": return .muse
+        case "agent_opencode": return .opencode
+        case "agent_amp": return .amp
+        case "agent_hermes": return .hermes
+        case "agent_claude-desktop": return .claudeDesktop
+        case "agent_grokbot": return .grokBot
+        default: return nil
+        }
+    }
+    #endif
+    
     /// What stopped a Claude Code turn, from its StopFailure hook: Claude Code's own message when
     /// it sends one, else a sentence for the kind of error. nil when nothing says.
     static func stopFailureDetail(_ payload: [String: Any]) -> String? {

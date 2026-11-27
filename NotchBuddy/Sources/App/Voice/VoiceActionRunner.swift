@@ -26,7 +26,6 @@ protocol MusicControlling: Sendable {
 protocol PillControlling {
     func activeIds() -> Set<String>
     func mainPillId() -> String
-    func activeCount() -> Int
     func toggleIntegration(_ id: String)
     func setMainPill(_ id: String)
 }
@@ -93,7 +92,6 @@ private final class NullMusic: MusicControlling, @unchecked Sendable {
 private final class NullPills: PillControlling {
     func activeIds() -> Set<String>        { [] }
     func mainPillId() -> String            { "" }
-    func activeCount() -> Int              { 0 }
     func toggleIntegration(_ id: String)   {}
     func setMainPill(_ id: String)         {}
 }
@@ -108,7 +106,7 @@ final class VoiceActionRunner {
     var pills: PillControlling  = NullPills()
     var info:  VoiceInfoProviding = NullInfo()
 
-    /// Pending follow-up question (4-pill limit, ambiguity). Set when outcome is .question.
+    /// Pending follow-up question (something missing, ambiguity). Set when outcome is .question.
     var pendingQuestion: PendingVoiceQuestion? = nil
 
     /// Set to true when the runner executes a volume-changing command (volumeUp/Down/setVolume).
@@ -227,11 +225,6 @@ final class VoiceActionRunner {
             if pills.activeIds().contains(id) {
                 return ok("voice.pill-already-active")
             }
-            guard pills.activeCount() < 4 else {
-                let qFmt = Self.localizedString("voice.ask-which-remove", locale: commandLocale)
-                pendingQuestion = PendingVoiceQuestion(kind: .removeWhich(toAdd: id), text: qFmt)
-                return .init(outcome: .question(text: qFmt), message: qFmt)
-            }
             pills.toggleIntegration(id)
             let name = pillName(id, from: availablePills)
             let fmt  = Self.localizedString("voice.pill-added", locale: commandLocale)
@@ -241,7 +234,7 @@ final class VoiceActionRunner {
         case .pillAddMultiple(let ids):
             var added: [String] = []
             for id in ids {
-                guard !pills.activeIds().contains(id), pills.activeCount() < 4 else { continue }
+                guard !pills.activeIds().contains(id) else { continue }
                 pills.toggleIntegration(id)
                 added.append(pillName(id, from: availablePills))
             }
@@ -394,19 +387,6 @@ final class VoiceActionRunner {
         case .whichPill(let add):
             return await run(add ? .pillAdd(id: entity) : .pillRemove(id: entity),
                              availablePills: availablePills)
-        case .removeWhich(let toAdd):
-            if pills.activeIds().contains(entity) {
-                pills.toggleIntegration(entity)
-            }
-            if !pills.activeIds().contains(toAdd), pills.activeCount() < 4 {
-                pills.toggleIntegration(toAdd)
-            }
-            let removedName = pillName(entity, from: availablePills)
-            let addedName   = pillName(toAdd,  from: availablePills)
-            let fmt = Self.localizedString("voice.pill-replaced", locale: commandLocale)
-            let msg = fmt.contains("%@") ? String(format: fmt, removedName, addedName)
-                                         : "\(removedName) → \(addedName)"
-            return .init(outcome: .success, message: msg)
         }
     }
 

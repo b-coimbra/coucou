@@ -1,0 +1,57 @@
+name: Build Coucou macOS
+
+on:
+  push:
+    branches:
+      - cursor/grok-bot-integration-3f70
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+      
+      - name: Generate Xcode project
+        run: |
+          cd NotchBuddy
+          xcodegen
+      
+      - name: Build Coucou
+        run: |
+          cd NotchBuddy
+          xcodebuild \
+            -scheme NotchBuddy \
+            -configuration Debug \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY=- \
+            build
+      
+      - name: Locate built app
+        id: locate
+        run: |
+          APP_PATH=$(find NotchBuddy/build -name "Coucou.app" -type d | head -n 1)
+          echo "app_path=$APP_PATH" >> $GITHUB_OUTPUT
+          echo "Found app at: $APP_PATH"
+      
+      - name: Create artifact zip
+        run: |
+          cd $(dirname "${{ steps.locate.outputs.app_path }}")
+          zip -r Coucou.app.zip Coucou.app
+          mv Coucou.app.zip $GITHUB_WORKSPACE/
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Coucou-macos-unsigned
+          path: Coucou.app.zip
+          retention-days: 30

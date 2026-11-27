@@ -6,13 +6,13 @@ import SwiftUI
 /// The pages of the Coucou window: Flow (the dictation, the Notetaker) and the notch's settings.
 enum HubPage: String, CaseIterable, Identifiable {
     case dictation, notes, insights, dictionary, snippets, styles, settings
-    case room, general, pills, agents, chat, integrations, voice, shortcuts
+    case room, general, pills, agents, chat, integrations, voice, shortcuts, edgeLight
     case mailOverview, mailRules, mailBanned, mailVIP
 
     var id: String { rawValue }
 
     static let flowPages: [HubPage] = [.dictation, .notes, .insights, .dictionary, .snippets, .styles, .settings]
-    static let notchPages: [HubPage] = [.room, .general, .pills, .agents, .chat, .integrations, .voice, .shortcuts]
+    static let notchPages: [HubPage] = [.room, .general, .pills, .agents, .chat, .integrations, .voice, .shortcuts, .edgeLight]
     static let mailPages: [HubPage] = [.mailOverview, .mailRules, .mailBanned, .mailVIP]
 
     /// The section of Settings this page shows, for the notch's pages.
@@ -25,6 +25,7 @@ enum HubPage: String, CaseIterable, Identifiable {
         case .integrations: return "integrations"
         case .voice:        return "voice"
         case .shortcuts:    return "shortcuts"
+        case .edgeLight:    return "edgelight"
         default:            return nil
         }
     }
@@ -44,6 +45,7 @@ enum HubPage: String, CaseIterable, Identifiable {
         case .integrations: return String(localized: "Integrations")
         case .voice:        return String(localized: "Voice")
         case .shortcuts:    return String(localized: "Shortcuts")
+        case .edgeLight:    return String(localized: "edge-light.title")
         case .dictation:  return String(localized: "hub.page.dictation")
         case .notes:      return String(localized: "hub.page.notes")
         case .insights:   return String(localized: "hub.page.insights")
@@ -75,6 +77,7 @@ enum HubPage: String, CaseIterable, Identifiable {
         case .integrations: return "puzzlepiece.extension"
         case .voice:        return "waveform"
         case .shortcuts:    return "keyboard"
+        case .edgeLight:    return "light.max"
         case .mailOverview: return "tray"
         case .mailRules:    return "line.3.horizontal.decrease"
         case .mailBanned:   return "nosign"
@@ -130,6 +133,7 @@ extension HubPage {
         case .integrations: return String(localized: "hub.notch.integrations")
         case .voice:        return String(localized: "hub.notch.voice")
         case .shortcuts:    return String(localized: "hub.notch.shortcuts")
+        case .edgeLight:    return String(localized: "hub.notch.edge-light")
         default:            return nil
         }
     }
