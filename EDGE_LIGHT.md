@@ -62,9 +62,9 @@ Outside this folder: `HookServer.swift`, `GrokBotPoller.swift` and
 ## Overlay window
 
 A borderless, non-activating `NSPanel` that can't become key or main: transparent,
-click-through, at `.statusBar` level (above regular windows and the menu bar, below
-Coucou's island), on all spaces and over fullscreen apps. It stays when Coucou is
-not the active app.
+click-through, at main menu level + 5 (above regular windows, the menu bar and
+Coucou's island, so the island can't hide the line), on all spaces and over
+fullscreen apps. It stays when Coucou is not the active app.
 
 It covers one screen, `NSScreen.main` (the one with keyboard focus), read at each
 trigger, settings change and screen change.
@@ -79,11 +79,14 @@ fade (4.8 s in all). Slack's colors sweep from top to bottom.
 80 % opacity, with one lighter comet on top (5 s per turn). A source's comet plays
 over it.
 
-**Corners**: superellipse starting 1.528 × the radius from the corner. "Auto" is
-4 mm converted with the display's physical size, 12.5 pt when it is unknown.
+**Corners**: superellipse starting 1.528 × the radius from the corner. The radius
+is the screen's; the line's own is smaller by its distance to the edge (half the
+line width + 1 pt). "Auto" is 4 mm converted with the display's physical size
+(6 to 24 pt), 12.5 pt when it is unknown. Same radius top and bottom.
 
 **Notch**: read from `safeAreaInsets` and the auxiliary top areas. The line runs
-just outside the cutout.
+half its width + 1 pt outside the cutout, with 4 pt concave flares at the top edge
+and bottom corners of 8 pt + that clearance.
 
 ## Badge monitoring
 
@@ -124,9 +127,9 @@ Still to do:
 - [ ] CPU use, idle and animating
 - [ ] Translations of the new strings reviewed by speakers
 
-`NotchBuddy/Tests/EdgeLightGeometryTests.swift` and `EdgeLightBadgeTests.swift` are
-standalone scripts that carry their own copy of the logic: they do not exercise the
-app's types.
+`NotchBuddy/Tests/EdgeLightGeometryTests.swift` is compiled with the app's geometry
+file (the command is at its top). `EdgeLightBadgeTests.swift` is a standalone script
+that carries its own copy of the logic: it does not exercise the app's types.
 
 ## Syncing upstream
 

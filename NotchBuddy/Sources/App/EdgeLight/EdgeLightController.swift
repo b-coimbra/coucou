@@ -90,7 +90,9 @@ final class EdgeLightController {
         // Corner radius
         let radius: CGFloat
         switch settings.cornerRadiusPreset {
-        case .auto: radius = physicalRadiusPt(screen: screen, mm: 4.0) ?? 12.5
+        case .auto:
+            radius = EdgeLightMetrics.autoCornerRadius(screenWidth: screen.frame.width,
+                                                       physicalWidthMM: physicalWidthMM(of: screen))
         case .pt8: radius = 8.0
         case .pt10: radius = 10.0
         case .pt12: radius = 12.0
@@ -98,56 +100,27 @@ final class EdgeLightController {
         case .pt16: radius = 16.0
         }
 
-        let inset: CGFloat = 1.0
-
         // Notch detection
-        let notch = settings.notchContourEnabled
-            ? detectNotch(screen: screen, clearance: settings.lineWidth / 2.0 + inset)
+        let cutout = settings.notchContourEnabled
+            ? EdgeLightCutout.detect(screenFrame: screen.frame,
+                                     safeAreaTop: screen.safeAreaInsets.top,
+                                     leftArea: screen.auxiliaryTopLeftArea,
+                                     rightArea: screen.auxiliaryTopRightArea)
             : nil
 
         return EdgeLightPath(
             rect: CGRect(origin: .zero, size: screen.frame.size),
             radii: (radius, radius, radius, radius),
             lineWidth: settings.lineWidth,
-            inset: inset,
-            notch: notch
+            notch: cutout.map { .around($0, lineWidth: settings.lineWidth) }
         )
     }
 
-    /// `clearance` keeps the whole line outside the cutout, where it can be seen
-    private func detectNotch(screen: NSScreen, clearance: CGFloat) -> EdgeLightNotch? {
-        let height = screen.safeAreaInsets.top
-        guard height > 0,
-              let leftArea = screen.auxiliaryTopLeftArea,
-              let rightArea = screen.auxiliaryTopRightArea,
-              leftArea.width > 0, rightArea.width > 0 else {
+    private func physicalWidthMM(of screen: NSScreen) -> CGFloat? {
+        guard let display = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID else {
             return nil
         }
-
-        // The two areas flank the notch: its width is what they leave
-        let leftX = leftArea.width
-        let rightX = screen.frame.width - rightArea.width
-
-        guard rightX - leftX > 20 else { return nil }
-
-        return EdgeLightNotch(
-            leftX: leftX - clearance,
-            rightX: rightX + clearance,
-            bottomY: height + clearance,
-            baseRadius: 8.0,
-            topRadius: 4.0
-        )
-    }
-
-    private func physicalRadiusPt(screen: NSScreen, mm: CGFloat) -> CGFloat? {
-        guard let deviceDesc = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? CGDirectDisplayID else {
-            return nil
-        }
-
-        let size = CGDisplayScreenSize(deviceDesc)
-        guard size.width > 100 else { return nil }  // No reliable size info
-
-        return max(6.0, min(24.0, mm * screen.frame.width / size.width))
+        return CGDisplayScreenSize(display).width
     }
 
     // MARK: - Triggers

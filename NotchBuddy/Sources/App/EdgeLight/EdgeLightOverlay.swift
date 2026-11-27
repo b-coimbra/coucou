@@ -34,7 +34,9 @@ final class EdgeLightOverlay {
         panel.backgroundColor = .clear
         panel.hasShadow = false
         panel.ignoresMouseEvents = true  // Click-through
-        panel.level = .statusBar  // Over regular windows and the menu bar
+        // Over the menu bar and over Coucou's own notch windows, which go up to
+        // main menu + 4 (the dragged Mochi) and would otherwise hide part of the line
+        panel.level = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.mainMenuWindow)) + 5)
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
         panel.hidesOnDeactivate = false  // Panels hide with their app by default
         panel.isReleasedWhenClosed = false

@@ -1,159 +1,203 @@
-#!/usr/bin/swift
-// EdgeLightGeometryTests.swift — standalone test script for edge light geometry
-// Run from repo root:
-//   swift NotchBuddy/Tests/EdgeLightGeometryTests.swift
+// EdgeLightGeometryTests.swift — standalone tests for the edge light geometry
+// Compiled with the app's geometry file. Run from the repo root:
+//   swiftc -swift-version 6 -strict-concurrency=complete \
+//     NotchBuddy/Sources/App/EdgeLight/EdgeLightGeometry.swift \
+//     NotchBuddy/Tests/EdgeLightGeometryTests.swift \
+//     -o /tmp/edge-light-geometry-tests && /tmp/edge-light-geometry-tests
 
 import Foundation
 import CoreGraphics
 
-var passed = 0
-var failed = 0
+@main
+@MainActor
+struct EdgeLightGeometryTests {
+    static var passed = 0
+    static var failed = 0
 
-func assertEqual<T: Equatable>(_ actual: T, _ expected: T, _ desc: String, tolerance: T? = nil) where T: Numeric {
-    let matches: Bool
-    if let tol = tolerance {
-        matches = abs(actual - expected) <= tol
-    } else {
-        matches = actual == expected
-    }
-    
-    if matches {
-        passed += 1
-        print("  ✓ \(desc)")
-    } else {
-        failed += 1
-        print("  ✗ \(desc) — expected: \(expected), got: \(actual)")
-    }
-}
-
-func assertTrue(_ condition: Bool, _ desc: String) {
-    if condition {
-        passed += 1
-        print("  ✓ \(desc)")
-    } else {
-        failed += 1
-        print("  ✗ \(desc) — expected true")
-    }
-}
-
-func assertClose(_ actual: CGFloat, _ expected: CGFloat, _ desc: String, tolerance: CGFloat = 0.1) {
-    if abs(actual - expected) <= tolerance {
-        passed += 1
-        print("  ✓ \(desc)")
-    } else {
-        failed += 1
-        print("  ✗ \(desc) — expected: \(expected), got: \(actual) (tolerance: \(tolerance))")
-    }
-}
-
-print("Running EdgeLightGeometryTests...")
-
-// 1. Test arc length calculation is positive
-let testRect = CGRect(x: 0, y: 0, width: 1920, height: 1080)
-let radii: (CGFloat, CGFloat, CGFloat, CGFloat) = (12, 12, 12, 12)
-// Can't instantiate the actual EdgeLightPath without importing the module,
-// but we can test the perimeter formula
-
-// Perimeter of rectangle with rounded corners (approximate)
-let w = testRect.width
-let h = testRect.height
-let r: CGFloat = 12.0
-let straightPerimeter = 2 * (w + h) - 8 * r  // straight sections
-let arcPerimeter = 2 * .pi * r  // 4 quarter circles = full circle
-let expectedPerimeter = straightPerimeter + arcPerimeter
-
-assertTrue(expectedPerimeter > 0, "Perimeter is positive")
-assertTrue(expectedPerimeter > 2 * (w + h) - 100, "Perimeter is reasonable (slightly less than full rectangle)")
-
-// 2. Test corner radius scaling
-let smallRadius: CGFloat = 8.0
-let largeRadius: CGFloat = 16.0
-assertTrue(largeRadius > smallRadius, "Larger radius value is larger")
-
-// 3. Test notch geometry constraints
-struct TestNotch {
-    let leftX: CGFloat
-    let rightX: CGFloat
-    let bottomY: CGFloat
-    let baseRadius: CGFloat
-    let topRadius: CGFloat
-    
-    func canFit(topY: CGFloat, bottomY: CGFloat, leftX: CGFloat, rightX: CGFloat) -> Bool {
-        guard self.rightX - self.leftX > 4,
-              self.bottomY - topY > 2,
-              self.leftX > leftX + 1,
-              self.rightX < rightX - 1,
-              self.bottomY < bottomY - 4 else {
-            return false
+    static func check(_ condition: Bool, _ desc: String) {
+        if condition {
+            passed += 1
+            print("  ✓ \(desc)")
+        } else {
+            failed += 1
+            print("  ✗ \(desc)")
         }
-        return true
+    }
+
+    static func checkClose(_ actual: CGFloat, _ expected: CGFloat, _ desc: String,
+                           tolerance: CGFloat = 0.001) {
+        check(abs(actual - expected) <= tolerance, "\(desc) (expected \(expected), got \(actual))")
+    }
+
+    static func has(_ path: EdgeLightPath, _ x: CGFloat, _ y: CGFloat) -> Bool {
+        path.points.contains { hypot($0.x - x, $0.y - y) < 0.001 }
+    }
+
+    /// Every point matched by its reflection across the vertical line at `axis`
+    static func isMirrored(_ points: [CGPoint], about axis: CGFloat) -> Bool {
+        !points.isEmpty && points.allSatisfy { p in
+            points.contains { hypot($0.x - (2 * axis - p.x), $0.y - p.y) < 0.001 }
+        }
+    }
+
+    static func isClosed(_ path: EdgeLightPath) -> Bool {
+        guard let first = path.points.first, let last = path.points.last else { return false }
+        return path.points.count > 2 && hypot(first.x - last.x, first.y - last.y) < 1e-9
+    }
+
+    /// Longest stretch between two points that is neither horizontal nor vertical:
+    /// a break between a curve and the next line would show up as a long slanted one
+    static func longestSlant(_ path: EdgeLightPath) -> CGFloat {
+        zip(path.points, path.points.dropFirst()).reduce(0) { longest, pair in
+            let (a, b) = pair
+            let straight = abs(a.x - b.x) < 0.001 || abs(a.y - b.y) < 0.001
+            return straight ? longest : max(longest, hypot(a.x - b.x, a.y - b.y))
+        }
+    }
+
+    static func main() {
+        print("Running EdgeLightGeometryTests...")
+
+        let k = EdgeLightMetrics.cornerExtension
+        let lineWidth: CGFloat = 1.5
+        let offset: CGFloat = 1.75  // half the line plus the 1 pt inset
+
+        print("\nValues")
+        checkClose(k, 1.528, "Extension ratio")
+        checkClose(EdgeLightMetrics.fallbackCornerRadius, 12.5, "Fallback radius")
+        checkClose(EdgeLightMetrics.autoCornerRadius(screenWidth: 1710, physicalWidthMM: nil), 12.5,
+                   "Auto without a physical size")
+        checkClose(EdgeLightMetrics.autoCornerRadius(screenWidth: 1710, physicalWidthMM: 0), 12.5,
+                   "Auto with an unreliable size")
+        checkClose(EdgeLightMetrics.autoCornerRadius(screenWidth: 1710, physicalWidthMM: 290.5284),
+                   23.5433, "Auto on a 13-inch MacBook Air at 1710 pt: 4 mm", tolerance: 0.001)
+        checkClose(EdgeLightMetrics.autoCornerRadius(screenWidth: 3840, physicalWidthMM: 150), 24,
+                   "Auto is capped at 24 pt")
+        checkClose(EdgeLightMetrics.autoCornerRadius(screenWidth: 800, physicalWidthMM: 800), 6,
+                   "Auto is at least 6 pt")
+
+        print("\nScreen corners")
+        let screen = CGRect(x: 0, y: 0, width: 1710, height: 1112)
+        let r: CGFloat = 12.5
+        let plain = EdgeLightPath(rect: screen, radii: (r, r, r, r), lineWidth: lineWidth)
+        let ext = (r - offset) * k
+        let x0 = offset, y0 = offset
+        let x1 = screen.width - offset, y1 = screen.height - offset
+
+        check(isClosed(plain), "Path is closed")
+        checkClose(plain.points[0].x, x0 + ext, "Path starts 1.528 × r from the left edge")
+        checkClose(plain.points[0].y, y0, "Path starts on the top edge")
+        // Both ends of the four curves, 1.528 × the line's radius from each corner
+        check(has(plain, x0, y0 + ext) && has(plain, x0 + ext, y0), "Top-left curve ends")
+        check(has(plain, x1 - ext, y0) && has(plain, x1, y0 + ext), "Top-right curve ends")
+        check(has(plain, x1, y1 - ext) && has(plain, x1 - ext, y1), "Bottom-right curve ends")
+        check(has(plain, x0 + ext, y1) && has(plain, x0, y1 - ext), "Bottom-left curve ends")
+        check(plain.points.allSatisfy { p in
+            let onSide = abs(p.x - x0) < 0.001 || abs(p.x - x1) < 0.001
+            let nearCorner = p.y < y0 + ext - 0.001 || p.y > y1 - ext + 0.001
+            return !(onSide && nearCorner)
+        }, "No straight side closer than 1.528 × r to a corner")
+        // The midpoint of a curve falls where a circular arc of the same radius would
+        let mid = x0 + (r - offset) * (1 - 1 / CGFloat(2).squareRoot())
+        check(has(plain, mid, mid), "Curve midpoint matches the circular arc")
+        check(isMirrored(plain.points, about: screen.midX), "Path is symmetric")
+        check(longestSlant(plain) < 3, "No gap between curves and straight lines")
+
+        let square = EdgeLightPath(rect: screen, radii: (0, 0, 0, 0), lineWidth: lineWidth)
+        check(isClosed(square), "Square path is closed")
+        check(has(square, x0, y0) && has(square, x1, y0) && has(square, x1, y1) && has(square, x0, y1),
+              "Radius 0 keeps the four square corners")
+
+        print("\nNotch detection")
+        // As reported by a 13-inch MacBook Air at 1710 × 1112
+        let cutout = EdgeLightCutout.detect(
+            screenFrame: screen, safeAreaTop: 38,
+            leftArea: CGRect(x: 0, y: 1074, width: 751, height: 38),
+            rightArea: CGRect(x: 960, y: 1074, width: 750, height: 38))
+        check(cutout == EdgeLightCutout(leftX: 751, rightX: 960, height: 38), "Built-in screen")
+
+        // Far enough left that x = 0 can't be one of its global coordinates
+        let placed = CGRect(x: -2000, y: 200, width: 1710, height: 1112)
+        check(EdgeLightCutout.detect(
+            screenFrame: placed, safeAreaTop: 38,
+            leftArea: CGRect(x: -2000, y: 1274, width: 751, height: 38),
+            rightArea: CGRect(x: -1040, y: 1274, width: 750, height: 38)) == cutout,
+              "Screen away from the origin, global coordinates")
+        check(EdgeLightCutout.detect(
+            screenFrame: placed, safeAreaTop: 38,
+            leftArea: CGRect(x: 0, y: 1074, width: 751, height: 38),
+            rightArea: CGRect(x: 960, y: 1074, width: 750, height: 38)) == cutout,
+              "Screen away from the origin, local coordinates")
+        check(EdgeLightCutout.detect(screenFrame: screen, safeAreaTop: 0,
+                                     leftArea: nil, rightArea: nil) == nil, "Screen without a notch")
+
+        guard let cutout else {
+            print("\nResults: \(passed) passed, \(failed + 1) failed")
+            exit(1)
+        }
+
+        print("\nWay around the notch")
+        let notch = EdgeLightNotch.around(cutout, lineWidth: lineWidth)
+        checkClose(notch.leftX, 749.25, "Left side: 1.75 pt outside the cutout")
+        checkClose(notch.rightX, 961.75, "Right side: 1.75 pt outside the cutout")
+        checkClose(notch.bottomY, 39.75, "Bottom: 1.75 pt under the cutout")
+        checkClose(notch.baseRadius, 9.75, "Bottom radius: 8 + clearance")
+        checkClose(notch.topRadius, 4, "Top flare radius")
+
+        let path = EdgeLightPath(rect: screen, radii: (r, r, r, r), lineWidth: lineWidth, notch: notch)
+        let top = notch.topRadius * k
+        let base = notch.baseRadius * k
+        check(isClosed(path), "Path with a notch is closed")
+        check(has(path, notch.leftX - top, y0) && has(path, notch.leftX, y0 + top),
+              "Left flare starts 1.528 × r before the side")
+        check(has(path, notch.leftX, notch.bottomY - base) && has(path, notch.leftX + base, notch.bottomY),
+              "Bottom-left curve starts 1.528 × r from the corner")
+        check(has(path, notch.rightX - base, notch.bottomY) && has(path, notch.rightX, notch.bottomY - base),
+              "Bottom-right curve starts 1.528 × r from the corner")
+        check(has(path, notch.rightX, y0 + top) && has(path, notch.rightX + top, y0),
+              "Right flare ends 1.528 × r after the side")
+
+        let center = (cutout.leftX + cutout.rightX) / 2
+        let around = path.points.filter {
+            $0.x >= notch.leftX - top - 0.001 && $0.x <= notch.rightX + top + 0.001 && $0.y < 100
+        }
+        check(isMirrored(around, about: center), "Way around is symmetric about the notch center")
+        // The cutout's bottom corners are rounded: the line may cross its bounding box there
+        check(path.points.allSatisfy { p in
+            let inBox = p.x > cutout.leftX && p.x < cutout.rightX && p.y < cutout.height
+            let inCorner = p.y > cutout.height - base
+                && (p.x < cutout.leftX + base || p.x > cutout.rightX - base)
+            return !inBox || inCorner
+        }, "Nothing drawn inside the cutout, bottom corners aside")
+        // Middle of the bottom-left curve, against a notch with 8 pt corners
+        let inward = notch.baseRadius * (1 - 1 / CGFloat(2).squareRoot())
+        let hardware = EdgeLightMetrics.notchBaseRadius * (1 - 1 / CGFloat(2).squareRoot())
+        check(has(path, notch.leftX + inward, notch.bottomY - inward)
+              && notch.leftX + inward < cutout.leftX + hardware
+              && notch.bottomY - inward > cutout.height - hardware,
+              "The bottom curve passes outside the notch's own")
+        check(longestSlant(path) < 3, "No gap around the notch")
+        let topCenter = path.point(at: path.topCenterS)
+        checkClose(topCenter.x, screen.midX, "Comets start at the middle of the screen")
+        checkClose(topCenter.y, notch.bottomY, "…under the notch")
+
+        // With the notch in the middle of the screen, the whole path mirrors
+        let centered = EdgeLightNotch.around(
+            EdgeLightCutout(leftX: 750, rightX: 960, height: 38), lineWidth: lineWidth)
+        let whole = EdgeLightPath(rect: screen, radii: (r, r, r, r), lineWidth: lineWidth, notch: centered)
+        check(isMirrored(whole.points, about: 855), "Centered notch: the whole path is symmetric")
+
+        // A notch too shallow for both curves shrinks them to fit
+        let shallow = EdgeLightNotch.around(
+            EdgeLightCutout(leftX: 750, rightX: 960, height: 10), lineWidth: lineWidth)
+        let small = EdgeLightPath(rect: screen, radii: (r, r, r, r), lineWidth: lineWidth, notch: shallow)
+        let dip = small.points.filter { $0.x > 700 && $0.x < 1010 && $0.y < 100 }
+        check(isClosed(small) && !dip.isEmpty && dip.allSatisfy {
+            $0.y >= y0 - 0.001 && $0.y <= shallow.bottomY + 0.001
+        }, "Shallow notch stays between the top edge and its bottom")
+
+        print("")
+        print("Results: \(passed) passed, \(failed) failed")
+        exit(failed > 0 ? 1 : 0)
     }
 }
-
-let validNotch = TestNotch(leftX: 800, rightX: 1120, bottomY: 40, baseRadius: 8, topRadius: 4)
-assertTrue(validNotch.canFit(topY: 0, bottomY: 1080, leftX: 50, rightX: 1870), "Valid notch fits")
-
-let tooNarrowNotch = TestNotch(leftX: 800, rightX: 803, bottomY: 40, baseRadius: 8, topRadius: 4)
-assertTrue(!tooNarrowNotch.canFit(topY: 0, bottomY: 1080, leftX: 50, rightX: 1870), "Too narrow notch doesn't fit")
-
-let tooLowNotch = TestNotch(leftX: 800, rightX: 1120, bottomY: 2, baseRadius: 8, topRadius: 4)
-assertTrue(!tooLowNotch.canFit(topY: 0, bottomY: 1080, leftX: 50, rightX: 1870), "Too shallow notch doesn't fit")
-
-// 4. Test superellipse extension ratio
-let extensionRatio: CGFloat = 1.528
-assertTrue(extensionRatio > 1.0 && extensionRatio < 2.0, "Superellipse extension is reasonable (1-2x radius)")
-
-// 5. Test physical radius calculation (simulated)
-func physicalRadiusPt(screenWidthPt: CGFloat, screenWidthMm: CGFloat, targetMm: CGFloat) -> CGFloat {
-    let mmPerPt = screenWidthMm / screenWidthPt
-    return targetMm / mmPerPt
-}
-
-let macBookWidth: CGFloat = 1920  // pt
-let macBookPhysicalWidth: CGFloat = 344  // mm (approximate for 14" MacBook Pro)
-let targetPhysical: CGFloat = 4.0  // mm
-
-let calculatedRadius = physicalRadiusPt(screenWidthPt: macBookWidth, screenWidthMm: macBookPhysicalWidth, targetMm: targetPhysical)
-assertTrue(calculatedRadius > 6 && calculatedRadius < 24, "Physical radius calculation is in reasonable range (6-24 pt)")
-
-// 6. Test distance function
-func distance(_ a: CGPoint, _ b: CGPoint) -> CGFloat {
-    return hypot(a.x - b.x, a.y - b.y)
-}
-
-let p1 = CGPoint(x: 0, y: 0)
-let p2 = CGPoint(x: 3, y: 4)
-assertClose(distance(p1, p2), 5.0, "Pythagorean distance (3-4-5 triangle)", tolerance: 0.01)
-
-let p3 = CGPoint(x: 100, y: 100)
-let p4 = CGPoint(x: 100, y: 100)
-assertClose(distance(p3, p4), 0.0, "Zero distance for same point", tolerance: 0.01)
-
-// 7. Test arc length sampling
-let sampleCount = 100
-let stepSize: CGFloat = 10.0
-let totalDistance = CGFloat(sampleCount) * stepSize
-assertTrue(totalDistance == 1000, "Arc length sampling math is correct")
-
-// 8. Test modulo behavior for cyclic path
-func cyclicPosition(_ s: CGFloat, perimeter: CGFloat) -> CGFloat {
-    return s.truncatingRemainder(dividingBy: perimeter)
-}
-
-let testPerimeter: CGFloat = 100.0
-assertClose(cyclicPosition(150, perimeter: testPerimeter), 50, "Cyclic wrap-around works")
-assertClose(cyclicPosition(-10, perimeter: testPerimeter), 90, "Negative cyclic wrap works")
-
-// 9. Test corner count
-let expectedCorners = 4
-assertTrue(expectedCorners == 4, "Rectangle has 4 corners")
-
-// 10. Test line width offset
-let lineWidth: CGFloat = 1.5
-let inset: CGFloat = 1.0
-let offset = lineWidth / 2.0 + max(0, inset)
-assertClose(offset, 1.75, "Line center offset calculation", tolerance: 0.01)
-
-print("")
-print("Results: \(passed) passed, \(failed) failed")
-exit(failed > 0 ? 1 : 0)
