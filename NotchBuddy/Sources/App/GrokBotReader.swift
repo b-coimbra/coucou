@@ -254,15 +254,29 @@ private func cleanMarkdown(_ text: String) -> String {
     result = result.replacingOccurrences(of: "__", with: "")
     result = result.replacingOccurrences(of: "`", with: "")
     
-    // List items: - text -> • text
-    result = result.replacingOccurrences(of: #"^([ \t]*)[-*][ \t]+"#,
-                                         with: "$1• ",
-                                         options: .regularExpression)
+    // Process line by line for line-anchored patterns
+    let lines = result.components(separatedBy: .newlines)
+    var processedLines: [String] = []
     
-    // Remove heading markers (but keep # in "PR #194")
-    result = result.replacingOccurrences(of: #"^[ \t]*#{1,6}[ \t]*"#,
-                                         with: "",
-                                         options: [.regularExpression, .anchorsMatchLines])
+    for line in lines {
+        var processed = line
+        
+        // List items: - text -> • text
+        if let range = processed.range(of: #"^([ \t]*)[-*][ \t]+"#, options: .regularExpression) {
+            let leadingSpace = processed[..<range.upperBound].replacingOccurrences(of: #"[-*][ \t]+"#, with: "", options: .regularExpression)
+            let rest = processed[range.upperBound...]
+            processed = leadingSpace + "• " + rest
+        }
+        
+        // Remove heading markers (but keep # in "PR #194")
+        if let range = processed.range(of: #"^[ \t]*#{1,6}[ \t]*"#, options: .regularExpression) {
+            processed.removeSubrange(range)
+        }
+        
+        processedLines.append(processed)
+    }
+    
+    result = processedLines.joined(separator: "\n")
     
     // Collapse multiple newlines
     result = result.replacingOccurrences(of: #"\n{3,}"#,
