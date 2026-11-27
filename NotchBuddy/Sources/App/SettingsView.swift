@@ -362,6 +362,13 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Toggle("Open on hover", isOn: $state.openOnHover)
                     .help("Hovering the island opens it; it folds again shortly after the pointer leaves. Click inside to keep it open.")
+                VStack(alignment: .leading, spacing: 3) {
+                    Toggle(String(localized: "click-outside.toggle"), isOn: $state.closeOnClickOutside)
+                    Text("click-outside.subtitle")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 Toggle(String(localized: "alerts.all-pills"), isOn: $state.alertsFromAllPills)
                     .help(String(localized: "alerts.all-pills.help"))
                 HStack(spacing: 8) {

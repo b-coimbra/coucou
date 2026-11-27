@@ -12975,6 +12975,208 @@
         }
       }
     },
+    "click-outside.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "انقر في أي مكان خارج Coucou لطيّ الجزيرة المفتوحة. تبقى الأسئلة والأذونات المعلّقة مفتوحة."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "খোলা আইল্যান্ড গুটিয়ে নিতে Coucou-র বাইরে যেকোনো জায়গায় ক্লিক করুন। অপেক্ষমাণ প্রশ্ন ও অনুমতি খোলা থাকে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Klick außerhalb von Coucou klappt die geöffnete Insel ein. Offene Fragen und Berechtigungen bleiben sichtbar."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click anywhere outside Coucou to fold the open island. Waiting questions and permissions stay open."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haz clic fuera de Coucou para plegar la isla abierta. Las preguntas y los permisos pendientes siguen abiertos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un clic en dehors de Coucou replie l’île ouverte. Les questions et autorisations en attente restent ouvertes."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "खुले आइलैंड को समेटने के लिए Coucou के बाहर कहीं भी क्लिक करें। लंबित सवाल और अनुमतियाँ खुली रहती हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klik di mana saja di luar Coucou untuk melipat island yang terbuka. Pertanyaan dan izin yang menunggu tetap terbuka."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coucou の外側をクリックすると、開いているアイランドを閉じます。回答待ちの質問と許可リクエストは開いたままです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coucou 바깥을 클릭하면 열린 아일랜드가 접혀요. 대기 중인 질문과 권한 요청은 열린 채로 있어요."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clique em qualquer lugar fora do Coucou para recolher a ilha aberta. Perguntas e permissões pendentes continuam abertas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Щёлкните в любом месте вне Coucou, чтобы свернуть открытый остров. Ожидающие вопросы и разрешения остаются открытыми."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "คลิกที่ใดก็ได้นอก Coucou เพื่อพับไอส์แลนด์ที่เปิดอยู่ คำถามและคำขออนุญาตที่รออยู่จะยังเปิดค้างไว้"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Açık adayı kapatmak için Coucou dışında herhangi bir yere tıkla. Bekleyen sorular ve izinler açık kalır."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点击 Coucou 以外的任意位置即可收起展开的灵动岛。等待处理的问题和权限请求会保持打开。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按 Coucou 以外的任意位置即可收合展開的動態島。等待處理的問題和權限要求會保持開啟。"
+          }
+        }
+      }
+    },
+    "click-outside.toggle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الإغلاق عند النقر خارجًا"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "বাইরে ক্লিক করলে বন্ধ হোক"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei Klick außerhalb schließen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close when clicking outside"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar al hacer clic fuera"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fermer en cliquant à l’extérieur"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "बाहर क्लिक करने पर बंद करें"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tutup saat mengeklik di luar"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "外側をクリックして閉じる"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "바깥을 클릭하면 닫기"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fechar ao clicar fora"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрывать при щелчке вне окна"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ปิดเมื่อคลิกด้านนอก"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dışarı tıklanınca kapat"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点击外部时关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點按外部時關閉"
+          }
+        }
+      }
+    },
     "claude-desktop.chat.footer" : {
       "extractionState" : "manual",
       "localizations" : {
