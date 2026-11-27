@@ -339,6 +339,12 @@ struct OverviewView: View {
             #endif
         case "agent_claude-desktop":
             openClaudeDesktopApp()
+        case "agent_grokbot":
+            #if !APPSTORE
+            if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.xAI.Grok-Bot") {
+                NSWorkspace.shared.openApplication(at: url, configuration: .init(), completionHandler: nil)
+            }
+            #endif
         case "agent_gemini", "agent_antigravity",
              "agent_copilot", "agent_muse", "agent_opencode", "agent_amp":
             #if !APPSTORE
@@ -2060,6 +2066,15 @@ struct IntegrationCardView: View {
             #endif
         case "agent_claude-desktop":
             return true  // nothing to install: the relay tags desktop sessions on its own
+        case "agent_grokbot":
+            #if !APPSTORE
+            // Check if Grok Bot app is installed and storage directory exists
+            let grokBotPath = NSHomeDirectory() + "/Library/Application Support/Grok Bot/sand-client-persistence"
+            return FileManager.default.fileExists(atPath: grokBotPath) &&
+                   NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.xAI.Grok-Bot") != nil
+            #else
+            return false
+            #endif
         case "integration_music":
             #if !APPSTORE
             return true  // Apple Music is always installed on macOS

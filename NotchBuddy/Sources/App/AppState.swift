@@ -436,6 +436,12 @@ final class AppState: ObservableObject {
 
     // Cal.com (populated by CalcomPoller)
     @Published var calcomBookings: [CalcomBooking] = []
+    
+    // Grok Bot (populated by GrokBotPoller)
+    @Published var grokBotBots: [[String: Any]] = []
+    @Published var grokBotLatestMessages: [String: GrokBotMessage] = [:]
+    @Published var grokBotLoaded: Bool = false
+    @Published var grokBotError: String? = nil
     @Published var calcomLoaded: Bool = false
     @Published var calcomError: String? = nil
 
