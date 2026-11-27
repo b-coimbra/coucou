@@ -2378,6 +2378,12 @@ struct IntegrationCardView: View {
             SpotifyCardView()
                 .transition(.opacity)
             #endif
+        } else if task.id == "agent_grokbot" && appState.grokBotLoaded
+                    && (!appState.grokBotPending.isEmpty || !agentSessionActive) {
+            // Read from disk by GrokBotPoller: waiting prompts, bots and their latest messages.
+            // A waiting prompt keeps this card even while a new message is being announced.
+            GrokBotCardView(task: task)
+                .transition(.opacity)
         } else if agentSessionActive {
             // Active session view — reuse overview layout
             VStack(alignment: .leading, spacing: 0) {
@@ -2421,10 +2427,6 @@ struct IntegrationCardView: View {
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
             .padding(.top, 4)
-        } else if task.id == "agent_grokbot" && appState.grokBotLoaded {
-            // Read from disk by GrokBotPoller: bots and their latest messages
-            GrokBotCardView(task: task)
-                .transition(.opacity)
         } else {
             // Idle / not connected view — slides in from left when returning from detail
             VStack(alignment: .leading, spacing: 6) {

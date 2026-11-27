@@ -61,11 +61,106 @@ struct GrokBotMessage: Sendable {
     let timestampMs: Int
 }
 
+/// An approval card or question widget still waiting for the user. Display-only, held in memory.
+struct GrokBotPendingPrompt: Sendable, Equatable {
+    enum Kind: Sendable { case approval, question }
+
+    let botId: String
+    let botName: String
+    let color: String
+    let kind: Kind
+    let preview: String
+    let timestampMs: Int
+}
+
 struct GrokBotSnapshot: @unchecked Sendable {
     let bots: [[String: Any]]
     let messages: [GrokBotMessage]
+    var pending: [GrokBotPendingPrompt] = []  // newest first
     let ok: Bool
     let warning: String
+}
+
+// MARK: - Pending prompts
+
+private let pendingMaxAgeMs = 24 * 60 * 60 * 1000
+private let pendingPreviewLength = 80
+
+/// The approval cards and question widgets of one transcript that still wait for the user,
+/// newest first. `entries` are in transcript order. Anything older than 24h is ignored.
+func grokBotPendingPrompts(entries: [[String: Any]], botId: String, botName: String,
+                           color: String, nowMs: Int) -> [GrokBotPendingPrompt] {
+    var pending: [GrokBotPendingPrompt] = []
+    var userMovedOn = false  // a user message comes after the entry being looked at
+
+    for entry in entries.reversed() {
+        let entryKind = entry["kind"] as? String
+        let message = entry["message"] as? [String: Any]
+
+        if entryKind == "message", message?["role"] as? String == "user" {
+            userMovedOn = true
+            continue
+        }
+
+        guard entryKind == "send-message", let message,
+              let ts = jsonTimestampMs(entry["timestampMs"]),
+              ts >= nowMs - pendingMaxAgeMs else { continue }
+
+        let kind: GrokBotPendingPrompt.Kind
+        let preview: String
+
+        switch message["type"] as? String {
+        case "local-tool-permission":
+            guard let ask = message["ask"] as? [String: Any],
+                  ask["status"] as? String == "pending" else { continue }
+            kind = .approval
+            // A command, not Markdown: its characters are shown as written
+            preview = previewLine(ask["action"] as? String ?? "")
+        case "widget":
+            guard !userMovedOn,
+                  entry["respondedValue"] == nil,
+                  entry["widgetSkipped"] as? Bool != true,
+                  let widget = message["widget"] as? [String: Any],
+                  let prompt = widget["prompt"] as? String else { continue }
+            kind = .question
+            preview = previewLine(cleanMarkdown(prompt))
+        default:
+            continue
+        }
+
+        pending.append(GrokBotPendingPrompt(botId: botId, botName: botName, color: color,
+                                            kind: kind, preview: preview, timestampMs: ts))
+    }
+
+    return pending.sorted { $0.timestampMs > $1.timestampMs }
+}
+
+/// The first non-blank line, without control or bidirectional override characters,
+/// cut to the preview length.
+private func previewLine(_ text: String) -> String {
+    for line in text.components(separatedBy: .newlines) {
+        var scalars = String.UnicodeScalarView()
+        for scalar in line.unicodeScalars {
+            if scalar == "\t" {
+                scalars.append(" ")
+            } else if scalar.properties.generalCategory != .control && !scalar.properties.isBidiControl {
+                scalars.append(scalar)
+            }
+        }
+        let cleaned = String(scalars).trimmingCharacters(in: .whitespaces)
+        if cleaned.isEmpty { continue }
+        guard cleaned.count > pendingPreviewLength else { return cleaned }
+        return String(cleaned.prefix(pendingPreviewLength)) + "…"
+    }
+    return ""
+}
+
+/// A JSON number of milliseconds, whole or not. nil for anything else, booleans included,
+/// and for values with no Int representation.
+private func jsonTimestampMs(_ value: Any?) -> Int? {
+    guard let number = value as? NSNumber,
+          CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
+    return Int(exactly: number.doubleValue.rounded(.towardZero))
 }
 
 // MARK: - Reader
@@ -109,8 +204,8 @@ final class GrokBotReader: @unchecked Sendable {
         return value
     }
     
-    /// Main read: returns a snapshot of bots and messages
-    func read() -> GrokBotSnapshot {
+    /// Main read: returns a snapshot of bots, messages and waiting prompts
+    func read(nowMs: Int = Int(Date().timeIntervalSince1970 * 1000)) -> GrokBotSnapshot {
         // 1. Read account slot
         guard let slot = readKey(keyAccountSlot) as? String, !slot.isEmpty else {
             return GrokBotSnapshot(bots: [], messages: [], ok: false, warning: "Grok Bot account not found")
@@ -124,7 +219,8 @@ final class GrokBotReader: @unchecked Sendable {
         
         var bots: [[String: Any]] = []
         var messages: [GrokBotMessage] = []
-        
+        var pending: [GrokBotPendingPrompt] = []
+
         for row in rows {
             // Skip hidden bots
             if (row["isHiddenFromSidebar"] as? Bool) == true ||
@@ -141,6 +237,8 @@ final class GrokBotReader: @unchecked Sendable {
             // 3. Read transcript
             if let transcript = readKey(keyTranscript(slot, botId: botId)) as? [String: Any],
                let entries = transcript["entries"] as? [[String: Any]] {
+                pending += grokBotPendingPrompts(entries: entries, botId: botId, botName: botName,
+                                                 color: botColor, nowMs: nowMs)
                 for entry in entries {
                     guard entry["kind"] as? String == "send-message" else { continue }
                     guard let ts = jsonTimestampMs(entry["timestampMs"]) else { continue }
@@ -174,7 +272,8 @@ final class GrokBotReader: @unchecked Sendable {
         }
         
         messages.sort { $0.timestampMs < $1.timestampMs }
-        return GrokBotSnapshot(bots: bots, messages: messages, ok: true, warning: "")
+        pending.sort { $0.timestampMs > $1.timestampMs }
+        return GrokBotSnapshot(bots: bots, messages: messages, pending: pending, ok: true, warning: "")
     }
     
     private func extractMessageText(_ entry: [String: Any]) -> String? {
@@ -209,14 +308,6 @@ final class GrokBotReader: @unchecked Sendable {
         return nil
     }
     
-    /// A JSON number of milliseconds, whole or not. nil for anything else, booleans included,
-    /// and for values with no Int representation.
-    private func jsonTimestampMs(_ value: Any?) -> Int? {
-        guard let number = value as? NSNumber,
-              CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
-        return Int(exactly: number.doubleValue.rounded(.towardZero))
-    }
-
     private func timestampToMs(_ value: Any) -> Int {
         if let num = value as? Double {
             return secondsOrMsToMs(num)

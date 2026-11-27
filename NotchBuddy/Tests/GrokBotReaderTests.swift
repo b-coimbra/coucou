@@ -2,6 +2,9 @@
 // GrokBotReaderTests.swift — standalone test script for Grok Bot blob name mapping and message detection.
 // Run from repo root:
 //   swift NotchBuddy/Tests/GrokBotReaderTests.swift
+//
+// The `#else` half runs as a script. At its end it compiles this file again with the real
+// GrokBotReader.swift (-D GROKBOT_REAL_READER), which runs the first half. All data is synthetic.
 
 import Foundation
 
@@ -27,6 +30,132 @@ func assertTrue(_ condition: Bool, _ desc: String) {
         print("  ✗ \(desc) — expected true")
     }
 }
+
+#if GROKBOT_REAL_READER
+
+// MARK: - Pending prompts (real reader)
+
+let nowMs = 1_800_000_000_000
+let hourMs = 60 * 60 * 1000
+let dayMs = 24 * hourMs
+
+func ask(_ status: String, at ts: Int, action: String = "echo synthetic") -> [String: Any] {
+    ["kind": "send-message", "timestampMs": ts,
+     "message": ["type": "local-tool-permission",
+                 "ask": ["action": action, "target": "t", "machineId": "m",
+                         "requestId": "r", "status": status]]]
+}
+
+func widget(at ts: Int, prompt: String = "Pick one?", extra: [String: Any] = [:]) -> [String: Any] {
+    var entry: [String: Any] = [
+        "kind": "send-message", "timestampMs": ts,
+        "message": ["type": "widget",
+                    "widget": ["prompt": prompt, "options": [["label": "A", "value": "a"]]]]]
+    entry.merge(extra) { _, new in new }
+    return entry
+}
+
+func chat(_ role: String, at ts: Int) -> [String: Any] {
+    ["kind": "message", "timestampMs": ts, "message": ["role": role]]
+}
+
+func detect(_ entries: [[String: Any]]) -> [GrokBotPendingPrompt] {
+    grokBotPendingPrompts(entries: entries, botId: "b1", botName: "Test Bot",
+                          color: "#000000", nowMs: nowMs)
+}
+
+print("Running pending prompt tests...")
+
+// Approval cards
+let pendingAsk = detect([ask("pending", at: nowMs - 1000)])
+assertEqual(pendingAsk, [GrokBotPendingPrompt(botId: "b1", botName: "Test Bot", color: "#000000",
+                                              kind: .approval, preview: "echo synthetic",
+                                              timestampMs: nowMs - 1000)],
+            "Pending ask detected")
+for status in ["allowed", "expired", "denied", ""] {
+    assertTrue(detect([ask(status, at: nowMs - 1000)]).isEmpty, "Ask with status \"\(status)\" ignored")
+}
+assertTrue(detect([ask("pending", at: nowMs - dayMs - 1)]).isEmpty, "Ask older than 24h ignored")
+assertEqual(detect([ask("pending", at: nowMs - dayMs)]).count, 1, "Ask exactly 24h old kept")
+assertEqual(detect([ask("pending", at: nowMs - 1000), chat("user", at: nowMs)]).count, 1,
+            "Ask stays pending after a user message")
+var noTimestamp = ask("pending", at: nowMs)
+noTimestamp["timestampMs"] = nil
+assertTrue(detect([noTimestamp]).isEmpty, "Ask without a timestamp ignored")
+
+// Question widgets
+let pendingWidget = detect([widget(at: nowMs - 1000)])
+assertEqual(pendingWidget.map(\.kind), [.question], "Pending widget detected")
+assertEqual(pendingWidget.map(\.preview), ["Pick one?"], "Widget preview is its prompt")
+assertTrue(detect([widget(at: nowMs - 1000, extra: ["respondedValue": "a"])]).isEmpty,
+           "Answered widget ignored")
+assertTrue(detect([widget(at: nowMs - 1000, extra: ["respondedValue": ""])]).isEmpty,
+           "Widget with an empty answer ignored")
+assertTrue(detect([widget(at: nowMs - 1000, extra: ["widgetSkipped": true])]).isEmpty,
+           "Skipped widget ignored")
+assertEqual(detect([widget(at: nowMs - 1000, extra: ["widgetSkipped": false])]).count, 1,
+            "widgetSkipped false stays pending")
+assertTrue(detect([widget(at: nowMs - 2000), chat("user", at: nowMs - 1000)]).isEmpty,
+           "Widget ignored after a later user message")
+assertEqual(detect([chat("user", at: nowMs - 2000), widget(at: nowMs - 1000)]).count, 1,
+            "Earlier user message doesn't answer a widget")
+assertEqual(detect([widget(at: nowMs - 2000), chat("assistant", at: nowMs - 1000)]).count, 1,
+            "Later assistant message doesn't answer a widget")
+assertTrue(detect([widget(at: nowMs - dayMs - 1)]).isEmpty, "Widget older than 24h ignored")
+
+// Other entries
+let others: [[String: Any]] = ["secret-request", "cursor-agent", "text"].map {
+    ["kind": "send-message", "timestampMs": nowMs, "message": ["type": $0, "content": "x"]]
+}
+assertTrue(detect(others + [["kind": "event", "timestampMs": nowMs]]).isEmpty, "Other types ignored")
+
+// Preview
+func preview(_ action: String) -> String { detect([ask("pending", at: nowMs, action: action)]).first?.preview ?? "-" }
+assertEqual(preview("\n  first line  \r\nsecond line"), "first line", "Preview is the first non-blank line")
+assertEqual(preview(String(repeating: "a", count: 80)), String(repeating: "a", count: 80),
+            "80 characters are kept whole")
+assertEqual(preview(String(repeating: "a", count: 200)), String(repeating: "a", count: 80) + "…",
+            "Long first line is truncated")
+assertEqual(preview("ls\t__init__.py `pwd` **/*"), "ls __init__.py `pwd` **/*", "Command characters kept")
+assertEqual(preview("a\u{202E}b\u{0007}c"), "abc", "Control and bidi override characters removed")
+assertEqual(preview(""), "", "Empty command gives an empty preview")
+assertEqual(detect([widget(at: nowMs, prompt: "## **Deploy** [now](https://example.com)?\nDetails")])
+                .map(\.preview), ["Deploy now?"], "Widget preview is cleaned of Markdown")
+
+// Order
+assertEqual(detect([ask("pending", at: nowMs - 3000), widget(at: nowMs - 1000),
+                    ask("pending", at: nowMs - 2000)]).map(\.timestampMs),
+            [nowMs - 1000, nowMs - 2000, nowMs - 3000], "Newest first")
+
+// The whole reader, on synthetic blobs in a temporary folder
+let blobDir = FileManager.default.temporaryDirectory
+    .appendingPathComponent("grokbot-reader-\(UUID().uuidString)")
+try FileManager.default.createDirectory(at: blobDir, withIntermediateDirectories: true)
+
+func writeBlob(_ key: String, _ value: Any) throws {
+    let data = try JSONSerialization.data(withJSONObject: ["value": value])
+    try data.write(to: blobDir.appendingPathComponent(grokBotBlobName(key)))
+}
+
+let prefix = "sand.client.slice.account.test-slot."
+try writeBlob("sand.client.slice.client-meta.account-slot", "test-slot")
+try writeBlob(prefix + "roster.last-roster", ["rows": [
+    ["id": "older", "name": "Older"],
+    ["id": "newer", "name": "Newer"],
+    ["id": "hidden", "name": "Hidden", "isHiddenFromSidebar": true],
+    ["id": "removed", "name": "Removed", "isRemovedFromSidebar": true],
+]])
+for (botId, ts) in [("older", nowMs - hourMs), ("newer", nowMs - 1000),
+                    ("hidden", nowMs), ("removed", nowMs)] {
+    try writeBlob(prefix + "transcript.replicas.\(botId)", ["entries": [ask("pending", at: ts)]])
+}
+let snapshot = GrokBotReader(basePath: blobDir.path).read(nowMs: nowMs)
+try FileManager.default.removeItem(at: blobDir)
+assertTrue(snapshot.ok, "Synthetic storage is read")
+assertEqual(snapshot.pending.map(\.botName), ["Newer", "Older"],
+            "Hidden and removed bots ignored, newest first across bots")
+
+#else
 
 // MARK: - Blob name conversion
 
@@ -217,6 +346,36 @@ for bad in ["nan", "inf", "-inf", "1e300"] {
 }
 assertEqual(timestampToMs(1e300), 0, "Huge number returns 0")
 assertEqual(timestampToMs(Int.min), 0, "Int.min returns 0")
+
+// 15. Pending prompts: compile the real reader with the first half of this file, then run it
+func run(_ executable: String, _ arguments: [String]) throws -> Int32 {
+    fflush(stdout)
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: executable)
+    process.arguments = arguments
+    try process.run()
+    process.waitUntilExit()
+    return process.terminationStatus
+}
+
+let testFile = URL(fileURLWithPath: #filePath)
+let readerFile = testFile.deletingLastPathComponent().deletingLastPathComponent()
+    .appendingPathComponent("Sources/App/GrokBotReader.swift")
+let buildDir = FileManager.default.temporaryDirectory
+    .appendingPathComponent("grokbot-tests-\(UUID().uuidString)")
+try FileManager.default.createDirectory(at: buildDir, withIntermediateDirectories: true)
+let mainFile = buildDir.appendingPathComponent("main.swift")
+try FileManager.default.copyItem(at: testFile, to: mainFile)
+let runner = buildDir.appendingPathComponent("runner").path
+let compiled = try run("/usr/bin/xcrun", ["swiftc", "-D", "GROKBOT_REAL_READER",
+                                          readerFile.path, mainFile.path, "-o", runner])
+assertEqual(compiled, 0, "Real reader compiles")
+if compiled == 0 {
+    assertEqual(try run(runner, []), 0, "Pending prompt tests pass")
+}
+try FileManager.default.removeItem(at: buildDir)
+
+#endif
 
 print("")
 print("Results: \(passed) passed, \(failed) failed")

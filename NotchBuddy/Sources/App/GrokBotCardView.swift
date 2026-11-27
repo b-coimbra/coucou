@@ -1,7 +1,9 @@
+import AppKit
 import SwiftUI
 
 // MARK: - Grok Bot card (overview left card, once Grok Bot's local state has been read)
-// One line per bot with its latest message, newest first. Text is display-only (verbatim).
+// Waiting prompts first, then one line per bot with its latest message, newest first.
+// Text is display-only (verbatim).
 
 struct GrokBotCardView: View {
     let task: AgentTask
@@ -53,6 +55,9 @@ struct GrokBotCardView: View {
             } else {
                 ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 3) {
+                        ForEach(Array(appState.grokBotPending.enumerated()), id: \.offset) { _, prompt in
+                            pendingRow(prompt)
+                        }
                         ForEach(rows) { row in
                             HStack(spacing: 5) {
                                 Text(verbatim: row.name)
@@ -83,5 +88,47 @@ struct GrokBotCardView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(.top, 4)
+    }
+
+    /// A prompt waiting in Grok Bot. A click only brings the app forward: it answers nothing.
+    private func pendingRow(_ prompt: GrokBotPendingPrompt) -> some View {
+        let format = switch prompt.kind {
+        case .approval: String(localized: "%@ needs approval")
+        case .question: String(localized: "%@ asked a question")
+        }
+        return Button {
+            openGrokBot()
+        } label: {
+            HStack(alignment: .top, spacing: 5) {
+                Circle()
+                    .fill(Color(hex: "#F5A524"))
+                    .frame(width: 5, height: 5)
+                    .padding(.top, 4)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(verbatim: String(format: format, prompt.botName))
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(Color(hex: "#E8E9EC"))
+                        .lineLimit(1).truncationMode(.tail)
+                    if !prompt.preview.isEmpty {
+                        Text(verbatim: prompt.preview)
+                            .font(.system(size: 10))
+                            .foregroundColor(Color(hex: "#8E939C"))
+                            .lineLimit(1).truncationMode(.tail)
+                    }
+                }
+                Spacer(minLength: 0)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// Launches or activates Grok Bot. No URL: nothing from the prompt is passed to it.
+    private func openGrokBot() {
+        #if !APPSTORE
+        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anysphere.sand") {
+            NSWorkspace.shared.openApplication(at: url, configuration: .init(), completionHandler: nil)
+        }
+        #endif
     }
 }
