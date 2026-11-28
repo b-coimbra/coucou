@@ -509,12 +509,21 @@ final class IslandWindowController: NSWindowController {
                                                    width: b.width, height: b.height))
             }
         }
-        let inIsland = hoverRect.contains(local)
+        #if !APPSTORE
+        // A glance item beside the closed notch takes its own clicks and is not the island:
+        // the pointer on it neither peeks nor opens the island, which would move the item.
+        let glance = glanceItem(at: local, panelHeight: pf.height)
+        if GlanceStore.shared.hovered != glance?.kind { GlanceStore.shared.hovered = glance?.kind }
+        let onGlance = glance != nil
+        #else
+        let onGlance = false
+        #endif
+        let inIsland = !onGlance && hoverRect.contains(local)
         let peek = placement.isCorner && state.mode == .compact && inIsland
         if state.cornerPeek != peek { state.cornerPeek = peek }
 
         // Toggle click-through
-        let shouldAcceptMouse = inIsland || inAttachDrag || attachDragStart != nil
+        let shouldAcceptMouse = inIsland || onGlance || inAttachDrag || attachDragStart != nil
         if panel.ignoresMouseEvents == shouldAcceptMouse {
             panel.ignoresMouseEvents = !shouldAcceptMouse
             if shouldAcceptMouse, let cv = panel.contentView {
@@ -575,6 +584,29 @@ final class IslandWindowController: NSWindowController {
 
         adjustPollRate(mouse: mouse, panelFrame: pf, islandRect: islandRect)
     }
+
+    #if !APPSTORE
+    // MARK: - Notch glance
+
+    /// The glance item under `local` (panel coordinates, y up), while the glance is on screen.
+    private func glanceItem(at local: CGPoint, panelHeight: CGFloat) -> GlanceItem? {
+        guard Glance.isVisible(hasNotch: hasNotch, inCorner: state.islandPlacement.isCorner,
+                               isOpen: state.mode == .expanded), !inAttachDrag else { return nil }
+        return GlanceStore.shared.item(at: CGPoint(x: local.x, y: panelHeight - local.y))
+    }
+
+    /// A glance item clicked: the island opens on its pill's card. Nothing else happens.
+    private func openGlance(pill: String) {
+        guard state.tasks.contains(where: { $0.id == pill }) else { return }
+        fsm.openedExternally()
+        state.setFocus(pill)
+        state.revealFocusedPill()
+        state.cardSelection = nil
+        expand(to: .overview)
+        // Opened from beside the island: the auto-close starts unless the pointer comes in.
+        if !wasInIsland { fsm.mouseLeft() }
+    }
+    #endif
 
     /// Screen asleep or locked: stop polling; back at the idle rate when it wakes.
     private func observeScreenForPolling() {
@@ -1002,6 +1034,13 @@ final class IslandWindowController: NSWindowController {
             self.fsm.openedExternally()
             self.expand(to: .mail)
         }
+
+        #if !APPSTORE
+        NotificationCenter.default.addObserver(forName: .glanceOpen, object: nil, queue: .main) { [weak self] note in
+            guard let pill = note.object as? String else { return }
+            MainActor.assumeIsolated { self?.openGlance(pill: pill) }
+        }
+        #endif
 
         // Collapse requests from views (OK button, etc.)
         NotificationCenter.default.addObserver(forName: .islandCollapse, object: nil, queue: .main) { [weak self] _ in

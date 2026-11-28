@@ -203,6 +203,9 @@ jobs:
       - name: Day tests (meeting links and selection, Do not disturb filter, timesheet reminder)
         run: bash scripts/test-day.sh
 
+      - name: Glance tests (notch items, priorities, Do not disturb, Dock badge labels)
+        run: bash scripts/test-glance.sh
+
       - name: Build
         run: |
           set -o pipefail

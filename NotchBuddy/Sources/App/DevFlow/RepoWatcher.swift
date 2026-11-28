@@ -63,9 +63,16 @@ final class RepoWatcher {
 
     private func tick() async {
         let mode = AppState.shared.mode
-        guard mode != .hidden else { return }
+        guard mode != .hidden || glanceShowsKey else { return }
         guard mode == .expanded || Date().timeIntervalSince(lastRead) >= 60 else { return }
         await read()
+    }
+
+    /// The notch glance shows the Jira key beside the hidden island too (off until turned
+    /// on): the branch is then read once a minute there, without asking Jira.
+    private var glanceShowsKey: Bool {
+        let state = AppState.shared
+        return wantsJira && state.hasNotch && !state.islandPlacement.isCorner && GlanceSettings.isOn(.jira)
     }
 
     /// The island or a card came on screen. No-op while off.
@@ -113,6 +120,8 @@ final class RepoWatcher {
             repo.detached ? nil : JiraIssueKey.parse(branch: repo.branch, prefix: DevFlowSettings.jiraPrefix)
         }
         store.setIfChanged(\.jiraKey, key)
+        // Hidden island: the key only. Jira is asked once the island is back.
+        guard AppState.shared.mode != .hidden else { return }
         guard let key,
               let email = KeychainStore.shared.get(DevFlowSettings.jiraEmailKeychainKey), !email.isEmpty,
               let token = KeychainStore.shared.get(DevFlowSettings.jiraTokenKeychainKey), !token.isEmpty else {

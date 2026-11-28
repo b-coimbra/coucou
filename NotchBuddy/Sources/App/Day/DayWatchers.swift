@@ -111,6 +111,8 @@ final class MeetingWatcher {
         // The dot has nothing left to say once the meeting is well under way.
         if !MeetingSchedule.isUrgent(events, now: now) { store.setIfChanged(\.meetingUnseen, false) }
         DayController.shared.syncPills()
+        // The notch glance counts the minutes on this tick: it has no timer of its own.
+        GlanceController.shared.refresh()
     }
 
     private func forget() {

@@ -2,7 +2,7 @@
 import Foundation
 
 // MARK: - Badge Monitor
-// Polls Dock badge counts for Slack and Mail via lsappinfo.
+// Polls Dock badge counts for Slack and Mail (read by DockBadgeReader, via lsappinfo).
 // Ported from Minhoca's fontes.py badge monitoring.
 
 enum EdgeLightBadgeSource {
@@ -65,69 +65,10 @@ final class EdgeLightBadgeMonitor: @unchecked Sendable {
         }
     }
     
-    /// Read badge count from app via lsappinfo
+    /// nil when the app isn't running or its badge couldn't be read
     private func readBadgeCount(bundleId: String) -> Int? {
-        // Find ASN (Application Serial Number)
-        guard let asn = findASN(bundleId: bundleId) else {
-            return nil
-        }
-        
-        // Read StatusLabel
-        guard let label = readStatusLabel(asn: asn) else {
-            return nil
-        }
-        
+        guard case .label(let label) = DockBadgeReader.read(bundleId: bundleId) else { return nil }
         return parseBadgeCount(label: label)
-    }
-    
-    private func findASN(bundleId: String) -> String? {
-        guard let output = runLsappinfo(["find", "bundleid=\(bundleId)"]) else { return nil }
-
-        // Extract ASN:0x...-0x...:
-        let pattern = "ASN:0x[0-9a-fA-F]+-0x[0-9a-fA-F]+:"
-        guard let range = output.range(of: pattern, options: .regularExpression) else { return nil }
-        return String(output[range])
-    }
-
-    private func readStatusLabel(asn: String) -> String? {
-        guard let output = runLsappinfo(["info", "-only", "StatusLabel", asn]) else { return nil }
-
-        // Extract "label" = "value"
-        let pattern = #""label"\s*=\s*"([^"]*)""#
-        if let range = output.range(of: pattern, options: .regularExpression) {
-            let match = output[range]
-            // Extract the value between last pair of quotes
-            if let valueRange = match.range(of: #""[^"]*"$"#, options: .regularExpression) {
-                return String(match[valueRange].dropFirst().dropLast())
-            }
-        }
-
-        // Empty label (no badge)
-        if output.contains("StatusLabel") || output.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return ""
-        }
-
-        return nil
-    }
-
-    private func runLsappinfo(_ arguments: [String]) -> String? {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/lsappinfo")
-        process.arguments = arguments
-
-        let pipe = Pipe()
-        process.standardOutput = pipe
-
-        do {
-            try process.run()
-            // readToEnd() throws a Swift error where readDataToEndOfFile() raises an
-            // Objective-C exception. Read before waiting so a full pipe can't block the child.
-            let data = try pipe.fileHandleForReading.readToEnd() ?? Data()
-            process.waitUntilExit()
-            return String(data: data, encoding: .utf8)
-        } catch {
-            return nil
-        }
     }
 
     /// Parse badge label: "3" -> 3, "•" -> 1, "99+" -> 99, "" -> 0

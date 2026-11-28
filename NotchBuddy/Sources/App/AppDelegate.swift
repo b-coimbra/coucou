@@ -380,6 +380,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DevFlowController.shared.start()
         AgentsController.shared.start()
         DayController.shared.start()
+        DockBadgeController.shared.start()
+        GlanceController.shared.apply()
         #endif
         CryptoController.shared.start()
         CoucoudoroController.shared.start()

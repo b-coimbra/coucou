@@ -1,7 +1,7 @@
 #if !APPSTORE
 import Foundation
 
-/// One run of a command-line tool (git, gh) with its arguments as an array, no shell, and a
+/// One run of a command-line tool (git, gh, lsappinfo) with its arguments as an array, no shell, and a
 /// time limit. Blocking: call it off the main thread.
 enum DevProcess {
     struct Result: Sendable {
@@ -35,7 +35,9 @@ enum DevProcess {
         run.process.terminationHandler = { _ in exited.signal() }
         do { try run.process.run() } catch { return nil }
         DispatchQueue.global(qos: .utility).async {
-            run.data = run.output.fileHandleForReading.readDataToEndOfFile()
+            // readToEnd() throws a Swift error where readDataToEndOfFile() raises an
+            // Objective-C exception.
+            run.data = (try? run.output.fileHandleForReading.readToEnd()) ?? Data()
             read.signal()
         }
 

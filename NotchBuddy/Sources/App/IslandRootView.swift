@@ -25,6 +25,10 @@ struct IslandRootView: View {
                     .padding(.horizontal, IslandPlacement.side)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: placement.alignment)
             } else {
+                #if !APPSTORE
+                // Beside the closed notch, behind the island: its wings tuck under it.
+                GlanceNotchView(state: state)
+                #endif
                 IslandContainer(state: state)
                     .frame(maxWidth: .infinity, alignment: .center)
             }
