@@ -200,6 +200,9 @@ jobs:
       - name: Agent tests (usage reset, headless Claude jobs, Cursor agent pulse)
         run: bash scripts/test-agents.sh
 
+      - name: Day tests (meeting links and selection, Do not disturb filter, timesheet reminder)
+        run: bash scripts/test-day.sh
+
       - name: Build
         run: |
           set -o pipefail

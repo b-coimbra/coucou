@@ -356,6 +356,10 @@ struct OverviewView: View {
             #if !APPSTORE
             AgentActions.openPill(task.pill)
             #endif
+        case "integration_meeting", "integration_timesheet":
+            #if !APPSTORE
+            DayActions.openPill(task.pill)
+            #endif
         case "agent_grokbot":
             #if !APPSTORE
             if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anysphere.sand") {
@@ -2245,6 +2249,15 @@ struct IntegrationCardView: View {
         #endif
     }
 
+    // And the day pills
+    private var isDayPill: Bool {
+        #if !APPSTORE
+        return DayPills.contains(task.id)
+        #else
+        return false
+        #endif
+    }
+
     private var statusDot: Color {
         #if !APPSTORE
         if task.id == "integration_music" {
@@ -2395,6 +2408,11 @@ struct IntegrationCardView: View {
         } else if isAgentPill {
             #if !APPSTORE
             AgentPillCardView(task: task)
+                .transition(.opacity)
+            #endif
+        } else if isDayPill {
+            #if !APPSTORE
+            DayPillCardView(task: task)
                 .transition(.opacity)
             #endif
         } else if task.id == "integration_crypto" {
@@ -4860,7 +4878,7 @@ struct ColumnAgentsView: View {
     @ObservedObject var state: AppState
 
     var others: [AgentTask] {
-        state.tasks.filter { $0.id != state.focusId }
+        state.visibleTasks.filter { $0.id != state.focusId }
     }
 
     var body: some View {
