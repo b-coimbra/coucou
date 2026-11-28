@@ -455,6 +455,9 @@ final class AppState: ObservableObject {
     @Published var grokBotLatestMessages: [String: GrokBotMessage] = [:]
     @Published var grokBotPending: [GrokBotPendingPrompt] = []  // newest first, in memory only
     @Published var grokBotNotice: GrokBotNotice? = nil  // the notch notification, in memory only
+    /// A message arrived while Grok Bot wasn't in front and its card hasn't been looked at
+    /// since (the notch glance's green dot). In memory only.
+    @Published var grokBotUnread: Bool = false
     @Published var grokBotLoaded: Bool = false
     @Published var grokBotError: String? = nil
     @Published var calcomLoaded: Bool = false
@@ -642,6 +645,8 @@ final class AppState: ObservableObject {
         activeIntegrations = AgentPills.seed(activeIntegrations, defaults: ud)
         // And the day pills.
         activeIntegrations = DayPills.seed(activeIntegrations, defaults: ud)
+        // And the Slack and Mail badge pills.
+        activeIntegrations = BadgePills.seed(activeIntegrations, defaults: ud)
         #endif
         if let v = ud.string(forKey: "mainPill"), !v.isEmpty,
            PillCatalog.available.contains(where: { $0.id == v && $0.category == .workspace && !$0.comingSoon }) {

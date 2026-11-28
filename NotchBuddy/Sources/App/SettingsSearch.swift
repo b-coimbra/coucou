@@ -103,6 +103,9 @@ final class SettingsSearch: ObservableObject {
             e("general.display", .general, "Display", ["Show Mochi on", "Screen with the notch", "Main screen (menu bar)", "Follow the mouse",
                                                      "island.position", "island.position.top-left", "island.position.top-right",
                                                      "island.position.bottom-left", "island.position.bottom-right"]),
+            e("general.glance", .general, "glance.title",
+              ["glance.toggle.meeting", "glance.toggle.ci", "glance.toggle.grok", "glance.toggle.jira",
+               "glance.toggle.usage", "glance.toggle.slack", "glance.max"]),
             e("general.vitals", .general, "vitals.title", ["vitals.toggle"]),
             e("general.hotkey", .general, "Hotkey", ["Show island with shortcut", "Shortcut"]),
             e("general.startup", .general, "Startup", ["Launch at Mac startup"]),
@@ -147,6 +150,8 @@ final class SettingsSearch: ObservableObject {
             e("integrations.day", .integrations, "day.title",
               ["day.toggle.meeting", "day.toggle.focus", "day.focus.dnd", "day.toggle.timesheet",
                "day.timesheet.weekday", "day.timesheet.time"]),
+            e("integrations.badges", .integrations, "badges.title",
+              ["badges.toggle.slack", "badges.toggle.mail"]),
             // Notch → Voice, Shortcuts
             e("voice.wake", .voice, "«\u{202F}OK Coucou\u{202F}» — voice wake word", ["Enable voice command", "Request permissions"]),
             e("voice.language", .voice, "Language", ["voice.listen-language", "voice.language"]),
@@ -174,7 +179,10 @@ final class SettingsSearch: ObservableObject {
         list.removeAll { $0.id == "general.iphone" }
         #endif
         #if APPSTORE
-        list.removeAll { ["general.android", "agents.grokbot", "agents.activity", "integrations.day"].contains($0.id) }
+        list.removeAll {
+            ["general.android", "general.glance", "agents.grokbot", "agents.activity", "integrations.day",
+             "integrations.badges"].contains($0.id)
+        }
         #endif
         return list
     }()

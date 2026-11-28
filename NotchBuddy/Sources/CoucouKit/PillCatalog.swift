@@ -159,6 +159,11 @@ enum PillCatalog {
         // Only on the island while the reminder is due (DayController)
         .init(id: "integration_timesheet", name: String(localized: "day.pill.timesheet", defaultValue: "Weekly timesheet"), color: "#FACC15",
               category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
+        // Dock badge counts, display only (GitHub build: lsappinfo)
+        .init(id: "integration_slack_badge", name: "Slack",            color: "#E0407B",
+              category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
+        .init(id: "integration_mail_badge", name: String(localized: "badges.pill.mail", defaultValue: "Unread mail"), color: "#38BDF8",
+              category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
     ]
 
     /// Pills available in the current build target.

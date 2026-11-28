@@ -50,11 +50,12 @@ A new trigger replaces the comet already running.
 | `EdgeLightView.swift` | The scene, and the SwiftUI `Canvas` driven by a `TimelineView` |
 | `EdgeLightOverlay.swift` | The window, and when it is on screen |
 | `EdgeLightController.swift` | Triggers, settings changes, screen changes, path building, sources |
-| `EdgeLightBadgeMonitor.swift` | Slack and Mail badge counts |
+| `EdgeLightBadgeMonitor.swift` | Slack and Mail badge counts, and when they go up |
 | `EdgeLightSettings.swift` | `UserDefaults`-backed settings (`edgeLight.*`) |
 | `EdgeLightSettingsView.swift` | The settings page |
 
-Outside this folder: `HookServer.swift`, `GrokBotPoller.swift` and
+Outside this folder: `Badges/DockBadgeReader.swift` (the `lsappinfo` reading, shared
+with the badge pills), `HookServer.swift`, `GrokBotPoller.swift` and
 `AppDelegate.swift` (triggers and launch), `SettingsView.swift`, `FlowHub.swift`,
 `FlowHubMochis.swift` and `SettingsSearch.swift` (settings page), and
 `Localizable.xcstrings` (the `edge-light.*` strings, 16 languages).
@@ -93,7 +94,7 @@ and bottom corners of 8 pt + that clearance.
 Every 3 s, while Slack or Mail is on:
 
 - `/usr/bin/lsappinfo find bundleid=<id>`, then
-  `/usr/bin/lsappinfo info -only StatusLabel <asn>`
+  `/usr/bin/lsappinfo info -only StatusLabel <asn>`, each ended after 2 s
 - `"3"` → 3, `"•"` → 1, `"99+"` → 99, `""` → 0
 - Triggers only when a count goes up (never on the first read)
 - No message content is read, no network, no permission asked

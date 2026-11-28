@@ -360,6 +360,10 @@ struct OverviewView: View {
             #if !APPSTORE
             DayActions.openPill(task.pill)
             #endif
+        case "integration_slack_badge", "integration_mail_badge":
+            #if !APPSTORE
+            if let app = BadgeApp(pillId: task.pill) { BadgeActions.open(app) }
+            #endif
         case "agent_grokbot":
             #if !APPSTORE
             if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anysphere.sand") {
@@ -2258,6 +2262,15 @@ struct IntegrationCardView: View {
         #endif
     }
 
+    // And the Slack and Mail badge pills
+    private var isBadgePill: Bool {
+        #if !APPSTORE
+        return BadgePills.contains(task.id)
+        #else
+        return false
+        #endif
+    }
+
     private var statusDot: Color {
         #if !APPSTORE
         if task.id == "integration_music" {
@@ -2413,6 +2426,11 @@ struct IntegrationCardView: View {
         } else if isDayPill {
             #if !APPSTORE
             DayPillCardView(task: task)
+                .transition(.opacity)
+            #endif
+        } else if isBadgePill {
+            #if !APPSTORE
+            BadgeCardView(task: task)
                 .transition(.opacity)
             #endif
         } else if task.id == "integration_crypto" {

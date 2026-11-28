@@ -434,6 +434,11 @@ struct SettingsView: View {
         }
             .settingsAnchor("general.display")
 
+        #if !APPSTORE
+        GlanceSettingsSection()
+            .settingsAnchor("general.glance")
+        #endif
+
         GroupBox(String(localized: "vitals.title")) {
             VStack(alignment: .leading, spacing: 10) {
                 Toggle(String(localized: "vitals.toggle"), isOn: Binding(
@@ -1584,6 +1589,9 @@ struct SettingsView: View {
 
         DaySettingsSection()
             .settingsAnchor("integrations.day")
+
+        BadgeSettingsSection()
+            .settingsAnchor("integrations.badges")
         #endif
     }
 

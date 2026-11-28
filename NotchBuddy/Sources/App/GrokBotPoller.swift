@@ -55,6 +55,7 @@ final class GrokBotPoller: @unchecked Sendable {
                 AppState.shared.setIfChanged(\.grokBotLoaded, false)
                 AppState.shared.setIfChanged(\.grokBotError, snapshot.warning.isEmpty ? nil : snapshot.warning)
                 AppState.shared.setIfChanged(\.grokBotPending, [])
+                AppState.shared.setIfChanged(\.grokBotUnread, false)
                 self.dismissNotice()
                 self.syncAttentionBadge()
             }
@@ -118,6 +119,9 @@ final class GrokBotPoller: @unchecked Sendable {
         let focused = state.focusId == Self.pillId
 
         if !newMessages.isEmpty {
+            // Unread for the notch glance, unless it is being looked at.
+            let onCard = state.mode == .expanded && state.view == .overview && focused
+            if frontmost != grokBotBundleId && !onCard { state.setIfChanged(\.grokBotUnread, true) }
             state.tasks[taskIdx].state = .finished
             state.tasks[taskIdx].steps = []
             if !focused { state.tasks[taskIdx].pillBadge = .finished }
