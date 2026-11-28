@@ -1581,6 +1581,9 @@ struct SettingsView: View {
         #if !APPSTORE
         DevFlowSettingsSection()
             .settingsAnchor("integrations.devflow")
+
+        DaySettingsSection()
+            .settingsAnchor("integrations.day")
         #endif
     }
 

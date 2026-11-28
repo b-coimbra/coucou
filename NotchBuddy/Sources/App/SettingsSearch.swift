@@ -144,6 +144,9 @@ final class SettingsSearch: ObservableObject {
               ["devflow.toggle.jira", "devflow.toggle.prs", "devflow.toggle.ci", "devflow.toggle.reviews",
                "devflow.toggle.branch", "devflow.jira.site", "devflow.jira.prefix", "devflow.jira.email",
                "devflow.jira.token", "devflow.repos.root", "devflow.repos.pinned"]),
+            e("integrations.day", .integrations, "day.title",
+              ["day.toggle.meeting", "day.toggle.focus", "day.focus.dnd", "day.toggle.timesheet",
+               "day.timesheet.weekday", "day.timesheet.time"]),
             // Notch → Voice, Shortcuts
             e("voice.wake", .voice, "«\u{202F}OK Coucou\u{202F}» — voice wake word", ["Enable voice command", "Request permissions"]),
             e("voice.language", .voice, "Language", ["voice.listen-language", "voice.language"]),
@@ -171,7 +174,7 @@ final class SettingsSearch: ObservableObject {
         list.removeAll { $0.id == "general.iphone" }
         #endif
         #if APPSTORE
-        list.removeAll { ["general.android", "agents.grokbot", "agents.activity"].contains($0.id) }
+        list.removeAll { ["general.android", "agents.grokbot", "agents.activity", "integrations.day"].contains($0.id) }
         #endif
         return list
     }()

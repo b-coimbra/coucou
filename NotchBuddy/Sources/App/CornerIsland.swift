@@ -45,7 +45,7 @@ struct CornerArcView: View {
     /// Every other pill, in the circle's order.
     private var circleTasks: [AgentTask] {
         let focus = state.focusTask?.id
-        let others = state.tasks.filter { $0.id != focus }
+        let others = state.visibleTasks.filter { $0.id != focus }
         let known = order.compactMap { id in others.first { $0.id == id } }
         let rest = others.filter { t in !order.contains(t.id) }
         return known + rest
@@ -62,7 +62,9 @@ struct CornerArcView: View {
 
     /// Pages the circle to where the focused pill was, among the pills around it.
     private func reveal(_ id: String?) {
-        let position = order.firstIndex { $0 == id } ?? state.tasks.firstIndex { $0.id == id } ?? 0
+        let tasks = state.visibleTasks
+        let ordered = order.filter { id in tasks.contains { $0.id == id } }
+        let position = ordered.firstIndex { $0 == id } ?? tasks.firstIndex { $0.id == id } ?? 0
         page = position / Self.maxShown
     }
 
@@ -312,7 +314,7 @@ struct CornerBubbles: View {
 
     private static func others(_ state: AppState) -> [AgentTask] {
         let focus = state.focusTask?.id
-        return state.tasks.filter { $0.id != focus }
+        return state.visibleTasks.filter { $0.id != focus }
     }
 
     /// The small tiles out of the tile: a page of pills, and one more holding the arrows

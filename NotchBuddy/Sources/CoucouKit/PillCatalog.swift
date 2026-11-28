@@ -153,6 +153,12 @@ enum PillCatalog {
               category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
         .init(id: "integration_claude_jobs", name: String(localized: "agents.pill.jobs", defaultValue: "Claude jobs"), color: "#22D3EE",
               category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
+        // Day, display only (GitHub build: calendar entitlement, Grok Bot)
+        .init(id: "integration_meeting", name: String(localized: "day.pill.meeting", defaultValue: "Next meeting"), color: "#60A5FA",
+              category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
+        // Only on the island while the reminder is due (DayController)
+        .init(id: "integration_timesheet", name: String(localized: "day.pill.timesheet", defaultValue: "Weekly timesheet"), color: "#FACC15",
+              category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
     ]
 
     /// Pills available in the current build target.

@@ -20,6 +20,9 @@ final class AppState: ObservableObject {
     /// The page of pills beside the focused one in the open island (AgentPillsView). May be
     /// past the end once pills are gone: read `shownPillPage`.
     @Published var pillPage = 0
+    /// Pills left out of the island's lists for now (a reminder that isn't due, Do not disturb:
+    /// DayController). Always empty in the App Store build.
+    @Published var hiddenPills: Set<String> = []
 
     // Bot state override
     @Published var stateOverride: BotState? = nil
@@ -637,6 +640,8 @@ final class AppState: ObservableObject {
         activeIntegrations = DevFlowPills.seed(activeIntegrations, defaults: ud)
         // So are the agent pills.
         activeIntegrations = AgentPills.seed(activeIntegrations, defaults: ud)
+        // And the day pills.
+        activeIntegrations = DayPills.seed(activeIntegrations, defaults: ud)
         #endif
         if let v = ud.string(forKey: "mainPill"), !v.isEmpty,
            PillCatalog.available.contains(where: { $0.id == v && $0.category == .workspace && !$0.comingSoon }) {
@@ -675,8 +680,16 @@ final class AppState: ObservableObject {
         SessionBoard.pages(gridCells)
     }
 
+    /// The pills the island lists: all of them but those in `hiddenPills`. The one on the card
+    /// is never left out.
+    var visibleTasks: [AgentTask] {
+        guard !hiddenPills.isEmpty else { return tasks }
+        let focus = focusTask?.id
+        return tasks.filter { !hiddenPills.contains($0.id) || $0.id == focus }
+    }
+
     private var gridCells: [SessionBoard.Cell] {
-        tasks.filter { $0.id != focusId }.map {
+        visibleTasks.filter { $0.id != focusId }.map {
             SessionBoard.Cell(id: $0.id, state: $0.state, poppedOut: $0.id != $0.pill)
         }
     }
@@ -688,7 +701,7 @@ final class AppState: ObservableObject {
 
     /// Pages the list of pills to the focused one.
     func revealFocusedPill() {
-        let position = tasks.firstIndex { $0.id == focusId } ?? 0
+        let position = visibleTasks.firstIndex { $0.id == focusId } ?? 0
         setIfChanged(\.pillPage, SessionBoard.page(ofPosition: position, pageCount: pillPages.count))
     }
 

@@ -900,8 +900,8 @@ final class IslandWindowController: NSWindowController {
     // MARK: - Pill cycling helpers
 
     private func cyclePill(by delta: Int) {
-        guard !state.tasks.isEmpty else { return }
-        let ids = state.tasks.map { $0.id }
+        guard !state.visibleTasks.isEmpty else { return }
+        let ids = state.visibleTasks.map { $0.id }
         let cur = ids.firstIndex(of: state.focusId ?? "") ?? 0
         state.setFocus(ids[(cur + delta + ids.count) % ids.count])
         state.cardSelection = nil
@@ -909,8 +909,9 @@ final class IslandWindowController: NSWindowController {
     }
 
     private func switchToPill(number: Int) {
-        guard number >= 1, number <= state.tasks.count else { return }
-        state.setFocus(state.tasks[number - 1].id)
+        let tasks = state.visibleTasks
+        guard number >= 1, number <= tasks.count else { return }
+        state.setFocus(tasks[number - 1].id)
         state.revealFocusedPill()   // the same pill again, after paging away from it
         state.cardSelection = nil
         expand(to: .overview)
