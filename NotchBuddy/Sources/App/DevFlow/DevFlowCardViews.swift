@@ -18,8 +18,8 @@ struct DevFlowCardView: View {
     }
 }
 
-/// The header every card shares, and the room left for Mochi.
-private struct DevFlowCard<Content: View>: View {
+/// The header every card shares, and the room left for Mochi. Also used by the agent cards.
+struct DevFlowCard<Content: View>: View {
     let task: AgentTask
     /// What went wrong at the last read, shown as a warning beside the title.
     var warning: String? = nil
@@ -64,7 +64,7 @@ private struct DevFlowCard<Content: View>: View {
 }
 
 /// A line saying why there is nothing else to show.
-private struct DevFlowNote: View {
+struct DevFlowNote: View {
     let text: String
 
     var body: some View {

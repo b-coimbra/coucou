@@ -1130,6 +1130,9 @@ struct SettingsView: View {
 
         GrokBotSettingsSection()
             .settingsAnchor("agents.grokbot")
+
+        AgentsSettingsSection()
+            .settingsAnchor("agents.activity")
         #endif
     }
 

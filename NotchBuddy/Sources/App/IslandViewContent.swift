@@ -17,7 +17,11 @@ struct IslandViewContent: View {
             if let notice = state.grokBotNotice, state.focusId == "agent_grokbot" {
                 GrokBotNoticeView(state: state, notice: notice)
             } else {
+                #if !APPSTORE
+                AgentFinishedSlot(state: state)
+                #else
                 FinishedView(state: state)
+                #endif
             }
         case .confused:  ConfusedView()
         case .upload:    UploadView(state: state)
@@ -347,6 +351,10 @@ struct OverviewView: View {
         case "integration_jira", "integration_prs", "integration_reviews", "integration_branch":
             #if !APPSTORE
             DevFlowActions.openPill(task.pill)
+            #endif
+        case "integration_usage_reset", "integration_claude_jobs":
+            #if !APPSTORE
+            AgentActions.openPill(task.pill)
             #endif
         case "agent_grokbot":
             #if !APPSTORE
@@ -2228,6 +2236,15 @@ struct IntegrationCardView: View {
         #endif
     }
 
+    // So do the agent pills
+    private var isAgentPill: Bool {
+        #if !APPSTORE
+        return AgentPills.contains(task.id)
+        #else
+        return false
+        #endif
+    }
+
     private var statusDot: Color {
         #if !APPSTORE
         if task.id == "integration_music" {
@@ -2373,6 +2390,11 @@ struct IntegrationCardView: View {
         } else if isDevFlow {
             #if !APPSTORE
             DevFlowCardView(task: task)
+                .transition(.opacity)
+            #endif
+        } else if isAgentPill {
+            #if !APPSTORE
+            AgentPillCardView(task: task)
                 .transition(.opacity)
             #endif
         } else if task.id == "integration_crypto" {

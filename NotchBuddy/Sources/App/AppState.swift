@@ -521,6 +521,9 @@ final class AppState: ObservableObject {
     }
 
     #if !APPSTORE
+    // A finished Claude job or a waiting Cursor agent, in memory only (AgentNotices)
+    @Published var agentNotice: AgentNotice? = nil
+
     @Published var musicPlaying: Bool = false
     @Published var musicAutomationDenied: Bool = false
 
@@ -632,6 +635,8 @@ final class AppState: ObservableObject {
         #if !APPSTORE
         // The dev flow pills are on until turned off: added once to the saved choice.
         activeIntegrations = DevFlowPills.seed(activeIntegrations, defaults: ud)
+        // So are the agent pills.
+        activeIntegrations = AgentPills.seed(activeIntegrations, defaults: ud)
         #endif
         if let v = ud.string(forKey: "mainPill"), !v.isEmpty,
            PillCatalog.available.contains(where: { $0.id == v && $0.category == .workspace && !$0.comingSoon }) {

@@ -197,6 +197,9 @@ jobs:
       - name: Dev flow tests (Jira keys, git parsing, pull requests, CI transitions)
         run: bash scripts/test-devflow.sh
 
+      - name: Agent tests (usage reset, headless Claude jobs, Cursor agent pulse)
+        run: bash scripts/test-agents.sh
+
       - name: Build
         run: |
           set -o pipefail

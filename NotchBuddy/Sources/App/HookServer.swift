@@ -730,6 +730,14 @@ final class HookServer: @unchecked Sendable {
                 return
             }
         }
+        // A Cursor agent that finished or waits for you gets a light of its own (Agents).
+        #if !APPSTORE
+        let cursorPing = agentId == CursorPingController.pillId
+            ? CursorPingController.shared.event(name, session: sessionId, payload: payload) : nil
+        let cursorAsks = cursorPing == .needsInput
+        #else
+        let cursorAsks = false
+        #endif
         // What the event says goes to its session on the board, and the pill shows the board:
         // the session it shows, its steps and state; a session waiting for you keeps that state.
         let key = recapSessionId
@@ -786,9 +794,11 @@ final class HookServer: @unchecked Sendable {
                        externalAgent: isExternalAgent ? validAgent : nil)
             let isQuestion = tool == "ask_question" || tool.hasSuffix(":ask_question")
             let input = payload["tool_input"] as? [String: Any] ?? [:]
-            let label = localizedStep(tool: tool, input: input)
+            let label = cursorAsks
+                ? String(localized: "step.needs-input", defaultValue: "Needs input")
+                : localizedStep(tool: tool, input: input)
             note {
-                $0.state = isQuestion ? .question : .working
+                $0.state = isQuestion || cursorAsks ? .question : .working
                 $0.endedAt = nil
                 $0.appendStep(label)
             }
@@ -796,6 +806,9 @@ final class HookServer: @unchecked Sendable {
                 SoundEngine.shared.play("question")
                 if state.isPresent { expandIfNeeded(to: .overview) }
             }
+            #if !APPSTORE
+            if cursorAsks { CursorPingController.shared.announceNeedsInput(session: sessionId) }
+            #endif
             nbLog("PreToolUse \(tool)")
 
         case "PostToolUse":
@@ -829,6 +842,9 @@ final class HookServer: @unchecked Sendable {
                     $0.state = .question
                     $0.appendStep(message)
                 }
+                #if !APPSTORE
+                if cursorAsks { CursorPingController.shared.announceNeedsInput(session: sessionId) }
+                #endif
             }
 
         case "Stop":
@@ -855,8 +871,8 @@ final class HookServer: @unchecked Sendable {
             if !terminalInFront { 
                 SoundEngine.shared.play("finish")
                 #if !APPSTORE
-                // Trigger edge light for agent finish
-                if let source = Self.edgeLightSource(for: agentId) {
+                // Trigger edge light for agent finish (a Cursor pulse takes its place)
+                if cursorPing == nil, let source = Self.edgeLightSource(for: agentId) {
                     EdgeLightController.shared.trigger(source: source)
                 }
                 #endif
@@ -1200,6 +1216,9 @@ final class HookServer: @unchecked Sendable {
                    working: true, externalAgent: nil)
         syncPill(pillId)
         SoundEngine.shared.play("approval")
+        #if !APPSTORE
+        if pillId == CursorPingController.pillId { CursorPingController.shared.requestShown(session: sessionId) }
+        #endif
 
         // Monitor fd: if the agent closes the connection (answered in its own UI), drop the
         // request. The cancel handler closes the fd — never close it anywhere else.
@@ -1472,6 +1491,9 @@ final class HookServer: @unchecked Sendable {
                    working: true, externalAgent: nil)
         syncPill(pillId)
         SoundEngine.shared.play("approval")
+        #if !APPSTORE
+        if pillId == CursorPingController.pillId { CursorPingController.shared.requestShown(session: sessionId) }
+        #endif
 
         // Monitor fd: if the agent closes the connection (stopped or answered in its own UI),
         // drop the question. The cancel handler closes the fd — never close it anywhere else.

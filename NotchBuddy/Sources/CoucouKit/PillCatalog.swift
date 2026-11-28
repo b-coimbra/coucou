@@ -148,6 +148,11 @@ enum PillCatalog {
               category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
         .init(id: "integration_branch",  name: String(localized: "devflow.pill.branch", defaultValue: "Branch"), color: "#84CC16",
               category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
+        // Agents, display only (GitHub build: the status line relay and the process list)
+        .init(id: "integration_usage_reset", name: String(localized: "agents.pill.reset", defaultValue: "Usage reset"), color: "#FB923C",
+              category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
+        .init(id: "integration_claude_jobs", name: String(localized: "agents.pill.jobs", defaultValue: "Claude jobs"), color: "#22D3EE",
+              category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
     ]
 
     /// Pills available in the current build target.

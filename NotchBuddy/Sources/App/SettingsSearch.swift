@@ -131,6 +131,8 @@ final class SettingsSearch: ObservableObject {
             e("agents.hermes", .agents, "plugin.hermes.title", ["plugin.hermes.approvals"]),
             e("agents.plan", .agents, "plan.title", ["plan.show-in-notch", "Show Codex plan in the notch"]),
             e("agents.grokbot", .agents, "Grok Bot", ["grokbot.notify.toggle"]),
+            e("agents.activity", .agents, "agents.title",
+              ["agents.toggle.reset", "agents.reset.time", "agents.toggle.jobs", "agents.toggle.cursor"]),
             e("chat.subscriptions", .chat, "chat.subscriptions.title", ["chat.subscriptions.use"]),
             e("chat.anthropic", .chat, "chat.anthropic-api.title", ["chat.model", "Anthropic", "Claude"]),
             e("chat.others", .chat, "chat.other-providers.title", ["Google AI", "OpenAI", "DeepSeek", "Gemini"]),
@@ -169,7 +171,7 @@ final class SettingsSearch: ObservableObject {
         list.removeAll { $0.id == "general.iphone" }
         #endif
         #if APPSTORE
-        list.removeAll { $0.id == "general.android" || $0.id == "agents.grokbot" }
+        list.removeAll { ["general.android", "agents.grokbot", "agents.activity"].contains($0.id) }
         #endif
         return list
     }()
