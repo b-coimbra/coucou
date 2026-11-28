@@ -139,6 +139,15 @@ enum PillCatalog {
         // App Review question for the store build).
         .init(id: "integration_portfolio", name: "Portfolio",   color: "#FFD700",
               category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
+        // Dev flow, display only (GitHub build: it runs gh and git)
+        .init(id: "integration_jira",    name: "Jira",        color: "#2684FF",
+              category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
+        .init(id: "integration_prs",     name: String(localized: "devflow.pill.prs", defaultValue: "My PRs"), color: "#A78BFA",
+              category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
+        .init(id: "integration_reviews", name: String(localized: "devflow.pill.reviews", defaultValue: "Reviews"), color: "#F472B6",
+              category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
+        .init(id: "integration_branch",  name: String(localized: "devflow.pill.branch", defaultValue: "Branch"), color: "#84CC16",
+              category: .service,   subtitle: String(localized: "Integration"),  source: .n8n, githubOnly: true),
     ]
 
     /// Pills available in the current build target.

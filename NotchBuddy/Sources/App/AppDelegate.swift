@@ -377,6 +377,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         MacUpdater.shared.start()
         EdgeLightController.shared.start()
         ClaudeDesktopChatWatcher.shared.start()
+        DevFlowController.shared.start()
         #endif
         CryptoController.shared.start()
         CoucoudoroController.shared.start()

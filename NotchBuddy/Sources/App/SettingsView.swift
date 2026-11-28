@@ -1571,6 +1571,11 @@ struct SettingsView: View {
             .padding(6)
         }
             .settingsAnchor("integrations.all")
+
+        #if !APPSTORE
+        DevFlowSettingsSection()
+            .settingsAnchor("integrations.devflow")
+        #endif
     }
 
     // MARK: - Voice section

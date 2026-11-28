@@ -137,6 +137,10 @@ final class SettingsSearch: ObservableObject {
             e("integrations.all", .integrations, "Integrations",
               ["Stripe", "GitHub", "Vercel", "n8n", "Notion", "Resend", "Cal.com", "WhatsApp", "Spotify", "Crypto", "Coucoudoro",
                "crypto.exchange", "crypto.currency", "coucoudoro.work", "coucoudoro.rest", "coucoudoro.hint"]),
+            e("integrations.devflow", .integrations, "devflow.title",
+              ["devflow.toggle.jira", "devflow.toggle.prs", "devflow.toggle.ci", "devflow.toggle.reviews",
+               "devflow.toggle.branch", "devflow.jira.site", "devflow.jira.prefix", "devflow.jira.email",
+               "devflow.jira.token", "devflow.repos.root", "devflow.repos.pinned"]),
             // Notch → Voice, Shortcuts
             e("voice.wake", .voice, "«\u{202F}OK Coucou\u{202F}» — voice wake word", ["Enable voice command", "Request permissions"]),
             e("voice.language", .voice, "Language", ["voice.listen-language", "voice.language"]),

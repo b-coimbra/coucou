@@ -339,6 +339,10 @@ struct OverviewView: View {
             #endif
         case "agent_claude-desktop":
             openClaudeDesktopApp()
+        case "integration_jira", "integration_prs", "integration_reviews", "integration_branch":
+            #if !APPSTORE
+            DevFlowActions.openPill(task.pill)
+            #endif
         case "agent_grokbot":
             #if !APPSTORE
             if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anysphere.sand") {
@@ -2210,6 +2214,15 @@ struct IntegrationCardView: View {
         #endif
     }
 
+    // The dev flow pills have their own cards in every state
+    private var isDevFlow: Bool {
+        #if !APPSTORE
+        return DevFlowPills.contains(task.id)
+        #else
+        return false
+        #endif
+    }
+
     private var statusDot: Color {
         #if !APPSTORE
         if task.id == "integration_music" {
@@ -2350,6 +2363,11 @@ struct IntegrationCardView: View {
         } else if musicIsActive {
             #if !APPSTORE
             MusicCardView()
+                .transition(.opacity)
+            #endif
+        } else if isDevFlow {
+            #if !APPSTORE
+            DevFlowCardView(task: task)
                 .transition(.opacity)
             #endif
         } else if task.id == "integration_crypto" {

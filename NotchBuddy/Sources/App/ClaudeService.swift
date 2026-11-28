@@ -75,6 +75,8 @@ final class KeychainStore: @unchecked Sendable {
         "calcom-api-key",
         "notion-api-key",
         "elevenlabs-api-key",
+        // Jira card of the moment: the account's email and its API token
+        "jira-email", "jira-api-token",
         // WhatsApp (local gateway): its address, credentials and the webhook's signing secret
         "whatsapp-url", "whatsapp-api-key", "whatsapp-webhook-secret",
         // Portfolio exchange credentials
