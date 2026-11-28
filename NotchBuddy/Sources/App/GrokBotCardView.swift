@@ -123,12 +123,97 @@ struct GrokBotCardView: View {
         .buttonStyle(.plain)
     }
 
-    /// Launches or activates Grok Bot. No URL: nothing from the prompt is passed to it.
-    private func openGrokBot() {
-        #if !APPSTORE
-        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anysphere.sand") {
-            NSWorkspace.shared.openApplication(at: url, configuration: .init(), completionHandler: nil)
+}
+
+/// Launches or activates Grok Bot. No URL: nothing from a message or a prompt is passed to it.
+@MainActor
+private func openGrokBot() {
+    #if !APPSTORE
+    if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: grokBotBundleId) {
+        NSWorkspace.shared.openApplication(at: url, configuration: .init(), completionHandler: nil)
+    }
+    #endif
+}
+
+// MARK: - Grok Bot settings (Settings → Agents)
+
+struct GrokBotSettingsSection: View {
+    @AppStorage(grokBotNotificationsKey) private var notify = true
+
+    var body: some View {
+        GroupBox {
+            VStack(alignment: .leading, spacing: 10) {
+                Toggle(String(localized: "grokbot.notify.toggle"), isOn: $notify)
+                Text(String(localized: "grokbot.notify.hint"))
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(6)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } label: {
+            Text(verbatim: "Grok Bot")
         }
-        #endif
+    }
+}
+
+// MARK: - Grok Bot notice (the finished card, for a new message or a waiting prompt)
+
+/// Laid out like FinishedView. A click anywhere but OK opens Grok Bot; it answers nothing.
+struct GrokBotNoticeView: View {
+    @ObservedObject var state: AppState
+    let notice: GrokBotNotice
+
+    private var wash: CardBackground<EmptyView>.Wash {
+        switch notice.kind {
+        case .message:  return .green
+        case .approval: return .amber
+        case .question: return .cyan
+        }
+    }
+
+    private var label: String {
+        switch notice.kind {
+        case .message:  return "grokbot.notice.message"
+        case .approval: return "grokbot.notice.approval"
+        case .question: return "grokbot.notice.question"
+        }
+    }
+
+    var body: some View {
+        ZStack {
+            CardBackground(wash: wash)
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 7) {
+                    AgentWho(task: state.focusTask, label: label)
+                    if notice.count > 1 {
+                        Text(verbatim: "+\(notice.count - 1)")
+                            .font(.system(size: 12))
+                            .foregroundColor(Color(hex: "#8E939C"))
+                    }
+                }
+                Text(verbatim: notice.preview.isEmpty ? notice.botName : "\(notice.botName): \(notice.preview)")
+                    .font(.system(size: 15, weight: .semibold))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                HStack(spacing: 8) {
+                    PrimaryButton("grokbot.notice.open") { open() }
+                    SecondaryButton("OK") {
+                        NotificationCenter.default.post(name: .islandCollapse, object: nil)
+                    }
+                }
+            }
+            .padding(.leading, 116)
+            .padding(.trailing, 16)
+            .padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture { open() }
+    }
+
+    private func open() {
+        openGrokBot()
+        NotificationCenter.default.post(name: .islandCollapse, object: nil)
     }
 }

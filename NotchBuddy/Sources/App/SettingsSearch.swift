@@ -130,6 +130,7 @@ final class SettingsSearch: ObservableObject {
             e("agents.amp", .agents, "plugin.amp.title"),
             e("agents.hermes", .agents, "plugin.hermes.title", ["plugin.hermes.approvals"]),
             e("agents.plan", .agents, "plan.title", ["plan.show-in-notch", "Show Codex plan in the notch"]),
+            e("agents.grokbot", .agents, "Grok Bot", ["grokbot.notify.toggle"]),
             e("chat.subscriptions", .chat, "chat.subscriptions.title", ["chat.subscriptions.use"]),
             e("chat.anthropic", .chat, "chat.anthropic-api.title", ["chat.model", "Anthropic", "Claude"]),
             e("chat.others", .chat, "chat.other-providers.title", ["Google AI", "OpenAI", "DeepSeek", "Gemini"]),
@@ -168,7 +169,7 @@ final class SettingsSearch: ObservableObject {
         list.removeAll { $0.id == "general.iphone" }
         #endif
         #if APPSTORE
-        list.removeAll { $0.id == "general.android" }
+        list.removeAll { $0.id == "general.android" || $0.id == "agents.grokbot" }
         #endif
         return list
     }()

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Grok Bot notifications** *(GitHub build)* — a new message, approval or question from a bot opens the notch with the bot's name and first line while Grok Bot isn't in front; a click opens Grok Bot and answers nothing. Never over an approval, a question or a card you are using; on until turned off in Settings → Agents → Grok Bot. The message text stays in memory: it no longer goes into the pill's steps, which the phone links share
+
 Dev flow *(GitHub build)*: display only, a click opens a web page or an app. Four new pills, on until turned off, with their switches in Settings → Integrations → Dev flow.
 
 - **Jira card of the moment** — the `POC-123` key of the active repository's branch, and its status and summary when a Jira email and API token are saved (the token stays in the Keychain). A click opens the issue. The site and the project key can be changed

@@ -115,7 +115,7 @@ func grokBotPendingPrompts(entries: [[String: Any]], botId: String, botName: Str
                   ask["status"] as? String == "pending" else { continue }
             kind = .approval
             // A command, not Markdown: its characters are shown as written
-            preview = previewLine(ask["action"] as? String ?? "")
+            preview = grokBotPreviewLine(ask["action"] as? String ?? "")
         case "widget":
             guard !userMovedOn,
                   entry["respondedValue"] == nil,
@@ -123,7 +123,7 @@ func grokBotPendingPrompts(entries: [[String: Any]], botId: String, botName: Str
                   let widget = message["widget"] as? [String: Any],
                   let prompt = widget["prompt"] as? String else { continue }
             kind = .question
-            preview = previewLine(cleanMarkdown(prompt))
+            preview = grokBotPreviewLine(cleanMarkdown(prompt))
         default:
             continue
         }
@@ -137,7 +137,7 @@ func grokBotPendingPrompts(entries: [[String: Any]], botId: String, botName: Str
 
 /// The first non-blank line, without control or bidirectional override characters,
 /// cut to the preview length.
-private func previewLine(_ text: String) -> String {
+func grokBotPreviewLine(_ text: String) -> String {
     for line in text.components(separatedBy: .newlines) {
         var scalars = String.UnicodeScalarView()
         for scalar in line.unicodeScalars {
@@ -391,8 +391,8 @@ final class GrokBotNewMessageDetector: @unchecked Sendable {
     private var initialized = false
     private let startMs: Int
     
-    init() {
-        self.startMs = Int(Date().timeIntervalSince1970 * 1000)
+    init(startMs: Int = Int(Date().timeIntervalSince1970 * 1000)) {
+        self.startMs = startMs
     }
     
     /// Filters messages that are new since the last call

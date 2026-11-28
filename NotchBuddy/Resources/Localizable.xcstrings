@@ -1,6 +1,132 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "grokbot.notice.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "رسالة جديدة" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "নতুন বার্তা" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "neue Nachricht" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "new message" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "mensaje nuevo" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "nouveau message" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "नया संदेश" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "pesan baru" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "新着メッセージ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "새 메시지" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "nova mensagem" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "новое сообщение" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "ข้อความใหม่" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "yeni mesaj" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新消息" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "新訊息" } }
+      }
+    },
+    "grokbot.notice.approval" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "يحتاج إلى موافقة" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "অনুমোদন প্রয়োজন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "braucht eine Genehmigung" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "needs approval" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "necesita aprobación" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "attend une autorisation" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "को अनुमोदन चाहिए" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "perlu persetujuan" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "承認が必要" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "승인 필요" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "precisa de aprovação" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "ждёт одобрения" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "ต้องการการอนุมัติ" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "onay bekliyor" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "需要批准" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "需要核准" } }
+      }
+    },
+    "grokbot.notice.question" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "طرح سؤالًا" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "একটি প্রশ্ন করেছে" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "hat eine Frage" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "asked a question" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "hizo una pregunta" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "pose une question" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "ने एक सवाल पूछा" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "mengajukan pertanyaan" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "質問があります" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "질문이 있습니다" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "fez uma pergunta" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "задаёт вопрос" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "ถามคำถาม" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "bir soru sordu" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "提出了问题" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "提出了問題" } }
+      }
+    },
+    "grokbot.notice.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "فتح Grok Bot" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "Grok Bot খুলুন" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Grok Bot öffnen" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open Grok Bot" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir Grok Bot" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir Grok Bot" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "Grok Bot खोलें" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Buka Grok Bot" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Grok Botを開く" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Grok Bot 열기" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Abrir o Grok Bot" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть Grok Bot" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "เปิด Grok Bot" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Grok Bot’u aç" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开 Grok Bot" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "打開 Grok Bot" } }
+      }
+    },
+    "grokbot.notify.toggle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "إشعارات في النوتش" } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "নচে বিজ্ঞপ্তি" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Mitteilungen in der Notch" } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Notifications in the notch" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Notificaciones en el notch" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Notifications dans l’encoche" } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "नॉच में सूचनाएँ" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Notifikasi di notch" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ノッチで通知" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "노치 알림" } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Notificações no notch" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Уведомления в вырезе" } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "การแจ้งเตือนที่รอยบาก" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Çentikte bildirimler" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在刘海中显示通知" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "在瀏海中顯示通知" } }
+      }
+    },
+    "grokbot.notify.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : { "stringUnit" : { "state" : "translated", "value" : "رسالة جديدة أو موافقة أو سؤال بينما Grok Bot ليس في المقدمة. يبقى نص الرسالة في ذاكرة هذا الـ Mac." } },
+        "bn" : { "stringUnit" : { "state" : "translated", "value" : "Grok Bot সামনে না থাকলে নতুন বার্তা, অনুমোদন বা প্রশ্ন। বার্তার লেখা শুধু এই Mac-এর মেমরিতে থাকে।" } },
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Eine neue Nachricht, Genehmigung oder Frage, während Grok Bot nicht im Vordergrund ist. Der Text bleibt im Arbeitsspeicher dieses Macs." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "A new message, approval or question while Grok Bot isn’t in front. The message text stays in this Mac’s memory." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Un mensaje, una aprobación o una pregunta nuevos mientras Grok Bot no está en primer plano. El texto se queda en la memoria de este Mac." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Un nouveau message, une autorisation ou une question quand Grok Bot n’est pas au premier plan. Le texte reste dans la mémoire de ce Mac." } },
+        "hi" : { "stringUnit" : { "state" : "translated", "value" : "Grok Bot सामने न होने पर नया संदेश, अनुमोदन या सवाल। संदेश का पाठ केवल इस Mac की मेमोरी में रहता है।" } },
+        "id" : { "stringUnit" : { "state" : "translated", "value" : "Pesan, persetujuan, atau pertanyaan baru saat Grok Bot tidak di depan. Teks pesan tetap di memori Mac ini." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Grok Botが前面にないときの新しいメッセージ、承認、質問を知らせます。本文はこのMacのメモリ内にのみ保持されます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Grok Bot이 앞에 없을 때 새 메시지, 승인 요청, 질문을 알립니다. 메시지 내용은 이 Mac의 메모리에만 남습니다." } },
+        "pt-BR" : { "stringUnit" : { "state" : "translated", "value" : "Uma nova mensagem, aprovação ou pergunta quando o Grok Bot não está em primeiro plano. O texto fica na memória deste Mac." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Новое сообщение, запрос одобрения или вопрос, когда Grok Bot не на переднем плане. Текст остаётся в памяти этого Mac." } },
+        "th" : { "stringUnit" : { "state" : "translated", "value" : "ข้อความ คำขออนุมัติ หรือคำถามใหม่ เมื่อ Grok Bot ไม่ได้อยู่ด้านหน้า ข้อความจะอยู่ในหน่วยความจำของ Mac เครื่องนี้เท่านั้น" } },
+        "tr" : { "stringUnit" : { "state" : "translated", "value" : "Grok Bot önde değilken yeni bir mesaj, onay isteği veya soru. Mesaj metni bu Mac’in belleğinde kalır." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当 Grok Bot 不在最前面时，提示新消息、批准请求或问题。消息文字只保留在这台 Mac 的内存中。" } },
+        "zh-Hant" : { "stringUnit" : { "state" : "translated", "value" : "當 Grok Bot 不在最前面時，提示新訊息、核准請求或問題。訊息文字只保留在這台 Mac 的記憶體中。" } }
+      }
+    },
     "devflow.title" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -13,7 +13,12 @@ struct IslandViewContent: View {
         case .approval:  ApprovalView(state: state)
         case .question:  QuestionView(state: state)
         case .error:     ErrorView(state: state)
-        case .finished:  FinishedView(state: state)
+        case .finished:
+            if let notice = state.grokBotNotice, state.focusId == "agent_grokbot" {
+                GrokBotNoticeView(state: state, notice: notice)
+            } else {
+                FinishedView(state: state)
+            }
         case .confused:  ConfusedView()
         case .upload:    UploadView(state: state)
         case .uploading: UploadingView(state: state)
@@ -2397,9 +2402,9 @@ struct IntegrationCardView: View {
                 .transition(.opacity)
             #endif
         } else if task.id == "agent_grokbot" && appState.grokBotLoaded
-                    && (!appState.grokBotPending.isEmpty || !agentSessionActive) {
+                    && (!appState.grokBotPending.isEmpty || !agentSessionActive || task.steps.isEmpty) {
             // Read from disk by GrokBotPoller: waiting prompts, bots and their latest messages.
-            // A waiting prompt keeps this card even while a new message is being announced.
+            // This card stays while a new message is being announced (the pill has no steps then).
             GrokBotCardView(task: task)
                 .transition(.opacity)
         } else if agentSessionActive {

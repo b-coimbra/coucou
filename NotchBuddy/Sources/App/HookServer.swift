@@ -992,12 +992,35 @@ final class HookServer: @unchecked Sendable {
     @MainActor
     private func showsAlert(for pill: String, focused: Bool) -> Bool {
         if focused { return true }
+        guard AppState.shared.alertsFromAllPills, isFreeForAlert else { return false }
+        borrowFocus(for: pill)
+        return true
+    }
+
+    /// No approval or question waits, and no card the user is busy in is open.
+    @MainActor
+    private var isFreeForAlert: Bool {
         let state = AppState.shared
-        guard state.alertsFromAllPills, state.pendingApproval == nil, state.pendingQuestion == nil else { return false }
-        if state.mode == .expanded, ![IslandView.overview, .finished, .error, .empty].contains(state.view) { return false }
+        guard state.pendingApproval == nil, state.pendingQuestion == nil else { return false }
+        return state.mode != .expanded || [IslandView.overview, .finished, .error, .empty].contains(state.view)
+    }
+
+    /// The alert's pill takes the focus for its card; restoreAlertFocus gives it back.
+    @MainActor
+    private func borrowFocus(for pill: String) {
+        let state = AppState.shared
         if focusBeforeAlert == nil { focusBeforeAlert = state.focusId }
         alertPill = pill
         withAnimation(.spring(response: 0.5, dampingFraction: 0.72)) { state.focusId = pill }
+    }
+
+    /// Opens the island on the finished card of a pill that has its own notification switch, so
+    /// whichever pill is shown. false, and nothing happens, while the user is busy in a card.
+    @MainActor
+    func presentNotice(pill: String) -> Bool {
+        guard isFreeForAlert else { return false }
+        if AppState.shared.focusId != pill { borrowFocus(for: pill) }
+        expandIfNeeded(to: .finished)
         return true
     }
 

@@ -1127,6 +1127,9 @@ struct SettingsView: View {
             .padding(6)
         }
             .settingsAnchor("agents.plan")
+
+        GrokBotSettingsSection()
+            .settingsAnchor("agents.grokbot")
         #endif
     }
 

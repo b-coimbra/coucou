@@ -4,7 +4,8 @@
 //   swift NotchBuddy/Tests/GrokBotReaderTests.swift
 //
 // The `#else` half runs as a script. At its end it compiles this file again with the real
-// GrokBotReader.swift (-D GROKBOT_REAL_READER), which runs the first half. All data is synthetic.
+// GrokBotReader.swift and GrokBotNotice.swift (-D GROKBOT_REAL_READER), which runs the first half.
+// All data is synthetic.
 
 import Foundation
 
@@ -154,6 +155,86 @@ try FileManager.default.removeItem(at: blobDir)
 assertTrue(snapshot.ok, "Synthetic storage is read")
 assertEqual(snapshot.pending.map(\.botName), ["Newer", "Older"],
             "Hidden and removed bots ignored, newest first across bots")
+
+// MARK: - Notch notification
+
+print("Running notification tests...")
+
+func message(_ botId: String, at ts: Int, text: String = "synthetic reply") -> GrokBotMessage {
+    GrokBotMessage(botId: botId, botName: "Bot \(botId)", color: "", text: text, timestampMs: ts)
+}
+
+func prompt(_ botId: String, at ts: Int, _ kind: GrokBotPendingPrompt.Kind = .approval,
+            preview: String = "echo synthetic") -> GrokBotPendingPrompt {
+    GrokBotPendingPrompt(botId: botId, botName: "Bot \(botId)", color: "", kind: kind,
+                         preview: preview, timestampMs: ts)
+}
+
+func state(_ messages: [GrokBotMessage] = [], _ pending: [GrokBotPendingPrompt] = [],
+           ok: Bool = true) -> GrokBotSnapshot {
+    GrokBotSnapshot(bots: [], messages: messages, pending: pending, ok: ok, warning: "")
+}
+
+// New messages against the baseline
+let messageDetector = GrokBotNewMessageDetector(startMs: nowMs)
+assertTrue(messageDetector.filter(state(ok: false)).isEmpty, "Unreadable storage gives no new message")
+assertTrue(messageDetector.filter(state([message("a", at: nowMs - 2000), message("a", at: nowMs + 10)])).isEmpty,
+           "First readable poll only sets the message baseline")
+assertTrue(messageDetector.filter(state([message("a", at: nowMs + 10)])).isEmpty, "Seen message isn't new again")
+assertEqual(messageDetector.filter(state([message("a", at: nowMs + 10), message("a", at: nowMs + 20),
+                                          message("b", at: nowMs - 1),
+                                          message("c", at: nowMs + 30)])).map(\.timestampMs),
+            [nowMs + 20, nowMs + 30], "Only messages past the baseline, or past launch for a new bot")
+
+// New prompts against the baseline
+let promptDetector = GrokBotNewPromptDetector(startMs: nowMs)
+assertTrue(promptDetector.filter(state([], [prompt("a", at: nowMs + 1)], ok: false)).isEmpty,
+           "Unreadable storage gives no new prompt")
+assertTrue(promptDetector.filter(state([], [prompt("a", at: nowMs + 2)])).isEmpty,
+           "First readable poll only sets the prompt baseline")
+assertTrue(promptDetector.filter(state([], [prompt("a", at: nowMs + 2)])).isEmpty, "Waiting prompt isn't new again")
+assertEqual(promptDetector.filter(state([], [prompt("a", at: nowMs + 3), prompt("a", at: nowMs + 2)]))
+                .map(\.timestampMs), [nowMs + 3], "Added prompt is new")
+assertTrue(promptDetector.filter(state()).isEmpty, "No prompt, nothing new")
+assertTrue(promptDetector.filter(state([], [prompt("a", at: nowMs + 3)])).isEmpty,
+           "Prompt that disappeared and came back isn't announced again")
+assertTrue(promptDetector.filter(state([], [prompt("late", at: nowMs - 1000)])).isEmpty,
+           "Prompt older than the launch is never new")
+assertEqual(promptDetector.filter(state([], [prompt("a", at: nowMs + 3, .question)])).map(\.kind), [.question],
+            "Another kind at the same time is another prompt")
+
+// The decision
+func decide(_ messages: [GrokBotMessage] = [], _ prompts: [GrokBotPendingPrompt] = [],
+            enabled: Bool = true, frontmost: String? = "com.example.editor") -> GrokBotNotice? {
+    grokBotNotice(newMessages: messages, newPrompts: prompts, enabled: enabled, frontmostBundleId: frontmost)
+}
+
+let one = [message("a", at: nowMs)]
+assertEqual(decide(one), GrokBotNotice(botId: "a", botName: "Bot a", kind: .message,
+                                       preview: "synthetic reply", timestampMs: nowMs, count: 1),
+            "One new message is announced")
+assertTrue(decide() == nil, "Nothing new, no notice")
+assertTrue(decide(one, enabled: false) == nil, "Setting off, no notice")
+assertTrue(decide(one, frontmost: "com.anysphere.sand") == nil, "Grok Bot in front, no notice")
+assertTrue(decide([], [prompt("a", at: nowMs)], frontmost: "com.anysphere.sand") == nil,
+           "Grok Bot in front, no notice for a prompt either")
+assertTrue(decide(one, frontmost: nil) != nil, "Unknown frontmost app still notifies")
+let several = decide([message("a", at: nowMs + 3, text: "newest"), message("b", at: nowMs + 1),
+                      message("a", at: nowMs + 2)])
+assertEqual(several?.preview, "newest", "Several at once: the newest is shown")
+assertEqual(several?.count, 3, "Several at once: all counted")
+let mixed = decide([message("a", at: nowMs + 9)], [prompt("b", at: nowMs + 1, .question),
+                                                   prompt("c", at: nowMs + 2)])
+assertEqual(mixed?.botId, "c", "A waiting prompt is shown before a message, newest prompt first")
+assertEqual(mixed?.kind, .approval, "Approval prompt gives an approval notice")
+assertEqual(mixed?.count, 3, "Prompts and messages are counted together")
+let widgetTwice = decide([message("a", at: nowMs)], [prompt("a", at: nowMs, .question)])
+assertEqual(widgetTwice?.kind, .question, "Question widget gives a question notice")
+assertEqual(widgetTwice?.count, 1, "A widget seen as message and prompt counts once")
+assertEqual(decide([message("a", at: nowMs, text: "\n  first\u{202E} line \nsecond line")])?.preview, "first line",
+            "Notice keeps the first line only, without control characters")
+assertEqual(decide([message("a", at: nowMs, text: String(repeating: "a", count: 500))])?.preview,
+            String(repeating: "a", count: 80) + "…", "Notice preview is truncated")
 
 #else
 
@@ -361,6 +442,7 @@ func run(_ executable: String, _ arguments: [String]) throws -> Int32 {
 let testFile = URL(fileURLWithPath: #filePath)
 let readerFile = testFile.deletingLastPathComponent().deletingLastPathComponent()
     .appendingPathComponent("Sources/App/GrokBotReader.swift")
+let noticeFile = readerFile.deletingLastPathComponent().appendingPathComponent("GrokBotNotice.swift")
 let buildDir = FileManager.default.temporaryDirectory
     .appendingPathComponent("grokbot-tests-\(UUID().uuidString)")
 try FileManager.default.createDirectory(at: buildDir, withIntermediateDirectories: true)
@@ -368,10 +450,10 @@ let mainFile = buildDir.appendingPathComponent("main.swift")
 try FileManager.default.copyItem(at: testFile, to: mainFile)
 let runner = buildDir.appendingPathComponent("runner").path
 let compiled = try run("/usr/bin/xcrun", ["swiftc", "-D", "GROKBOT_REAL_READER",
-                                          readerFile.path, mainFile.path, "-o", runner])
+                                          readerFile.path, noticeFile.path, mainFile.path, "-o", runner])
 assertEqual(compiled, 0, "Real reader compiles")
 if compiled == 0 {
-    assertEqual(try run(runner, []), 0, "Pending prompt tests pass")
+    assertEqual(try run(runner, []), 0, "Pending prompt and notification tests pass")
 }
 try FileManager.default.removeItem(at: buildDir)
 

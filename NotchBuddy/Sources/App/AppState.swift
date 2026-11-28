@@ -451,6 +451,7 @@ final class AppState: ObservableObject {
     @Published var grokBotBots: [[String: Any]] = []
     @Published var grokBotLatestMessages: [String: GrokBotMessage] = [:]
     @Published var grokBotPending: [GrokBotPendingPrompt] = []  // newest first, in memory only
+    @Published var grokBotNotice: GrokBotNotice? = nil  // the notch notification, in memory only
     @Published var grokBotLoaded: Bool = false
     @Published var grokBotError: String? = nil
     @Published var calcomLoaded: Bool = false
