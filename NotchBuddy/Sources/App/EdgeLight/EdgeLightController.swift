@@ -136,7 +136,18 @@ final class EdgeLightController {
         play(source)
     }
 
+    /// One short lap in a given color, for an alert that isn't a source (CI finished).
+    /// Same master switch and Do not disturb as the sources.
+    func flash(colorHex: String) {
+        guard !settings.doNotDisturb else { return }
+        playComet(color: colorHex, palette: nil, lapDuration: 1.4, laps: 1)
+    }
+
     private func play(_ source: EdgeLightSource) {
+        playComet(color: settings.colorHex(for: source), palette: settings.palette(for: source))
+    }
+
+    private func playComet(color: String, palette: [String]?, lapDuration: CGFloat = 2.0, laps: Int = 2) {
         // The screen being worked on, read each time
         guard settings.enabled, let screen = NSScreen.main else { return }
 
@@ -145,11 +156,8 @@ final class EdgeLightController {
         if settings.continuousMode && !settings.doNotDisturb {
             overlay.startContinuous(palette: settings.continuousPalette, path: path)
         }
-        overlay.playComet(
-            color: settings.colorHex(for: source),
-            palette: settings.palette(for: source),
-            path: path
-        )
+        overlay.playComet(color: color, palette: palette, path: path,
+                          lapDuration: lapDuration, laps: laps)
     }
 
     private func handleBadgeIncrease(source: EdgeLightBadgeSource) {

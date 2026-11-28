@@ -13,7 +13,16 @@ struct IslandViewContent: View {
         case .approval:  ApprovalView(state: state)
         case .question:  QuestionView(state: state)
         case .error:     ErrorView(state: state)
-        case .finished:  FinishedView(state: state)
+        case .finished:
+            if let notice = state.grokBotNotice, state.focusId == "agent_grokbot" {
+                GrokBotNoticeView(state: state, notice: notice)
+            } else {
+                #if !APPSTORE
+                AgentFinishedSlot(state: state)
+                #else
+                FinishedView(state: state)
+                #endif
+            }
         case .confused:  ConfusedView()
         case .upload:    UploadView(state: state)
         case .uploading: UploadingView(state: state)
@@ -339,6 +348,14 @@ struct OverviewView: View {
             #endif
         case "agent_claude-desktop":
             openClaudeDesktopApp()
+        case "integration_jira", "integration_prs", "integration_reviews", "integration_branch":
+            #if !APPSTORE
+            DevFlowActions.openPill(task.pill)
+            #endif
+        case "integration_usage_reset", "integration_claude_jobs":
+            #if !APPSTORE
+            AgentActions.openPill(task.pill)
+            #endif
         case "agent_grokbot":
             #if !APPSTORE
             if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.anysphere.sand") {
@@ -2210,6 +2227,24 @@ struct IntegrationCardView: View {
         #endif
     }
 
+    // The dev flow pills have their own cards in every state
+    private var isDevFlow: Bool {
+        #if !APPSTORE
+        return DevFlowPills.contains(task.id)
+        #else
+        return false
+        #endif
+    }
+
+    // So do the agent pills
+    private var isAgentPill: Bool {
+        #if !APPSTORE
+        return AgentPills.contains(task.id)
+        #else
+        return false
+        #endif
+    }
+
     private var statusDot: Color {
         #if !APPSTORE
         if task.id == "integration_music" {
@@ -2352,6 +2387,16 @@ struct IntegrationCardView: View {
             MusicCardView()
                 .transition(.opacity)
             #endif
+        } else if isDevFlow {
+            #if !APPSTORE
+            DevFlowCardView(task: task)
+                .transition(.opacity)
+            #endif
+        } else if isAgentPill {
+            #if !APPSTORE
+            AgentPillCardView(task: task)
+                .transition(.opacity)
+            #endif
         } else if task.id == "integration_crypto" {
             // Its own card in every state (loading, no coins, prices).
             CryptoCardView()
@@ -2378,6 +2423,12 @@ struct IntegrationCardView: View {
             SpotifyCardView()
                 .transition(.opacity)
             #endif
+        } else if task.id == "agent_grokbot" && appState.grokBotLoaded
+                    && (!appState.grokBotPending.isEmpty || !agentSessionActive || task.steps.isEmpty) {
+            // Read from disk by GrokBotPoller: waiting prompts, bots and their latest messages.
+            // This card stays while a new message is being announced (the pill has no steps then).
+            GrokBotCardView(task: task)
+                .transition(.opacity)
         } else if agentSessionActive {
             // Active session view — reuse overview layout
             VStack(alignment: .leading, spacing: 0) {
@@ -2421,10 +2472,6 @@ struct IntegrationCardView: View {
             }
             .frame(maxWidth: .infinity, alignment: .topLeading)
             .padding(.top, 4)
-        } else if task.id == "agent_grokbot" && appState.grokBotLoaded {
-            // Read from disk by GrokBotPoller: bots and their latest messages
-            GrokBotCardView(task: task)
-                .transition(.opacity)
         } else {
             // Idle / not connected view — slides in from left when returning from detail
             VStack(alignment: .leading, spacing: 6) {

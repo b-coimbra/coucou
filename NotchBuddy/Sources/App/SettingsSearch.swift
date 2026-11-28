@@ -130,6 +130,9 @@ final class SettingsSearch: ObservableObject {
             e("agents.amp", .agents, "plugin.amp.title"),
             e("agents.hermes", .agents, "plugin.hermes.title", ["plugin.hermes.approvals"]),
             e("agents.plan", .agents, "plan.title", ["plan.show-in-notch", "Show Codex plan in the notch"]),
+            e("agents.grokbot", .agents, "Grok Bot", ["grokbot.notify.toggle"]),
+            e("agents.activity", .agents, "agents.title",
+              ["agents.toggle.reset", "agents.reset.time", "agents.toggle.jobs", "agents.toggle.cursor"]),
             e("chat.subscriptions", .chat, "chat.subscriptions.title", ["chat.subscriptions.use"]),
             e("chat.anthropic", .chat, "chat.anthropic-api.title", ["chat.model", "Anthropic", "Claude"]),
             e("chat.others", .chat, "chat.other-providers.title", ["Google AI", "OpenAI", "DeepSeek", "Gemini"]),
@@ -137,6 +140,10 @@ final class SettingsSearch: ObservableObject {
             e("integrations.all", .integrations, "Integrations",
               ["Stripe", "GitHub", "Vercel", "n8n", "Notion", "Resend", "Cal.com", "WhatsApp", "Spotify", "Crypto", "Coucoudoro",
                "crypto.exchange", "crypto.currency", "coucoudoro.work", "coucoudoro.rest", "coucoudoro.hint"]),
+            e("integrations.devflow", .integrations, "devflow.title",
+              ["devflow.toggle.jira", "devflow.toggle.prs", "devflow.toggle.ci", "devflow.toggle.reviews",
+               "devflow.toggle.branch", "devflow.jira.site", "devflow.jira.prefix", "devflow.jira.email",
+               "devflow.jira.token", "devflow.repos.root", "devflow.repos.pinned"]),
             // Notch → Voice, Shortcuts
             e("voice.wake", .voice, "«\u{202F}OK Coucou\u{202F}» — voice wake word", ["Enable voice command", "Request permissions"]),
             e("voice.language", .voice, "Language", ["voice.listen-language", "voice.language"]),
@@ -164,7 +171,7 @@ final class SettingsSearch: ObservableObject {
         list.removeAll { $0.id == "general.iphone" }
         #endif
         #if APPSTORE
-        list.removeAll { $0.id == "general.android" }
+        list.removeAll { ["general.android", "agents.grokbot", "agents.activity"].contains($0.id) }
         #endif
         return list
     }()

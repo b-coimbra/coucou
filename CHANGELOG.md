@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+- **Grok Bot notifications** *(GitHub build)* — a new message, approval or question from a bot opens the notch with the bot's name and first line while Grok Bot isn't in front; a click opens Grok Bot and answers nothing. Never over an approval, a question or a card you are using; on until turned off in Settings → Agents → Grok Bot. The message text stays in memory: it no longer goes into the pill's steps, which the phone links share
+
+Dev flow *(GitHub build)*: display only, a click opens a web page or an app. Four new pills, on until turned off, with their switches in Settings → Integrations → Dev flow.
+
+- **Jira card of the moment** — the `POC-123` key of the active repository's branch, and its status and summary when a Jira email and API token are saved (the token stays in the Keychain). A click opens the issue. The site and the project key can be changed
+- **My PRs** — your open pull requests in MedCof-Tech and b-coimbra/coucou with their checks and the reviews and comments from others, read every 3 minutes with the GitHub CLI; a dot marks what is new since you last looked
+- **CI finished alert** — the Edge Light flashes green or red when a pull request's running checks finish (needs Edge Light on)
+- **Reviews** — the pull requests waiting for your review, oldest first
+- **Branch** — the active repository's branch, changed files and distance to its upstream: the pinned repository, else the one in your editor or terminal (only if Accessibility is already allowed), else the one changed last under `~/dev`
+
+Agents *(GitHub build)*: display only. Two new pills and one alert, on until turned off, with their switches in Settings → Agents → Agent activity.
+
+- **Usage reset** — the time left before your Claude usage limit resets, with how much of it is used, as Claude Code's status line reports it (the same relay as the plan gauge). While nothing live is known, it counts down to a daily time you set (18:30 by default) and says it is an estimate, with a `~` in the pill. No network
+- **Claude jobs** — the headless `claude -p` runs in progress, with their repository or folder and the elapsed time, looked for every 10 seconds; when one ends, a dot and a notch notice say where and after how long. The prompt is never kept or shown; interactive sessions and Coucou's own runs are left out
+- **Cursor agent pulse** — the Edge Light flashes blue when a Cursor agent finishes and amber when it asks something or stops on an error (needs Edge Light on), instead of Cursor's usual colour. A question from Cursor's own agent also opens a notch notice
+
 ## 0.6.2 — November 24, 2026
 
 - **Mochi's room** *(GitHub build)* — a new page at the top of the Notch section of the Coucou window, off by default: Mochi in a little room where every object is live data. He naps on the bed when nothing runs, sits at the desk while an agent works (code types itself on the screen) and runs to the door when one asks something: the permission request opens under the room with Deny, Always and Allow, each a click. The window is your weather: sun when the CI of your main branches and your last Vercel deploy are green, clouds while something builds, rain when a build fails, a storm when a deploy fails, stars at night. The frames on the wall are your connected tools with their logos — Stripe paid today, GitHub stars, the last Vercel deploy, n8n runs, your next Cal.com call — a click opens them. The clock gives the real time and the time coded with agents today, and the plant on the shelf grows with your streak. Under the room: time coded, approvals, deploys and streak for today, and the room's settings (door, weather, day and night, which tools hang on the wall). It only reads what Coucou already has, and draws nothing while it is off or the window is hidden. The idea came from the community

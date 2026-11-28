@@ -57,14 +57,15 @@ final class EdgeLightOverlay {
         scene.glowRadii = glowRadii
     }
 
-    func playComet(color: String, palette: [String]?, path: EdgeLightPath) {
+    func playComet(color: String, palette: [String]?, path: EdgeLightPath,
+                   lapDuration: CGFloat = 2.0, laps: Int = 2) {
         let comet = EdgeLightComet(
             path: path,
             color: hexToRGB(color),
             palette: palette?.map { hexToRGB($0) },
             startTime: Date.timeIntervalSinceReferenceDate,
-            lapDuration: 2.0,  // 2 seconds per lap
-            laps: 2,
+            lapDuration: lapDuration,  // seconds per lap
+            laps: laps,
             fadeDuration: 0.8,
             tailLength: 0.25
         )
